@@ -1,0 +1,104 @@
+# CTIO 1.0m / Y4KCam — coadd-template DIA validation on the SA98 Landolt field.
+#
+# PURPOSE (capability validation, "Approach A", coadd arm)
+# Exercise the full coadd-template + DIA path end-to-end on REAL CTIO data:
+#   build a deep coadd template from several nights, then difference a held-out
+#   science night against it. SA98 is a *static* standard field (no transient),
+#   so the success signal is a CLEAN difference: difference_image produced, few/no
+#   spurious DIA sources, forced-photometry difference flux ~0 at the field centre.
+#   (Swapping in a real transient later is just a field+nights change — "Approach B".)
+#
+# WHY SA98
+#   Landolt standard "SA 98" region, RA 102.99 deg, Dec -0.37 deg (06:51.9, -00:22).
+#   Equatorial -> PS1 also covers it, so the sibling pipeline_ps1_dia.yaml can DIA
+#   the SAME science against a PS1 template for a direct PS1-vs-coadd comparison.
+#   Deep multi-night BVRI coverage; here we use R/I (the DIA/PS1 bands).
+#   Data: NOIRLab Astro Data Archive, proposal 2009B-0170, unbinned (CCDSUM "1 1",
+#   4104x4104), filter slots B=2 V=3 R=4 I=5. ~9 R + ~9 I frames per template night.
+#
+# RUNBOOK (stack-activated shell; the venv used for unit tests has no lsst stack)
+#   # 1. Fetch all configured nights (template + science; whole proposal/night: bias+flat+object).
+#   .venv/bin/stips -c scripts/config/ctio1m/pipeline_coadd_dia.yaml download
+#   # 2. Full orchestrated run (bootstrap -> calibs -> science -> coadd template -> DIA -> fphot).
+#   .venv/bin/stips -c scripts/config/ctio1m/pipeline_coadd_dia.yaml run
+#   #    (preview first with:  ... run --dry-run)
+#   # 3. Regression guard: point the stack-gated smoke test at this repo and run it.
+#   CTIO_SMOKE_REPO=/Users/dangause/Developer/lick/data_ctio/sa98_repo \
+#       .venv/bin/python -m pytest instruments/ctio1m/tests/test_coadd_dia_smoke.py -q
+#
+# NOTE the sibling PS1 arm (pipeline_ps1_dia.yaml) reuses THIS repo's calibs+science
+# (skip_calibs/skip_science), so run this coadd arm FIRST.
+
+env:
+  # Phase-0 verification: point at the EXISTING materialized repo (sa98_v2_repo),
+  # not the nonexistent sa98_repo the committed config names. No reprocessing —
+  # templates + science + diffs + fphot already exist here (built 2026-07-16).
+  REPO: "/Users/dangause/Developer/lick/data_ctio/sa98_v2_repo"
+  STACK_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack"
+  INSTRUMENT_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/stips-dia-wt/instruments/ctio1m"
+  RAW_PARENT_DIR: "/Users/dangause/Developer/lick/data_ctio"
+  REFCAT_REPO: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/refcats"
+  # Scope NOIRLab downloads to the SA98 program (bias+flat+object all under it).
+  # All 5 nights are uniformly this proposal. NB: each night has ~100-144 object
+  # frames but only ~9 R + ~9 I are SA98 (the rest are other standards in the same
+  # program, filtered out downstream by object="SA98"); budget ~25-40 GB of raws.
+  NOIRLAB_PROPOSAL: "2009B-0170"
+
+object: "SA98"
+# SA98 science pointing: mean of the 54 SA98 frames (all within 0.002 deg).
+ra: 102.9863
+dec: -0.3719
+
+# DIA/PS1-relevant bands (B/V also available in the archive for coadd-only depth).
+bands: ["r", "i"]
+
+template:
+  type: coadd
+  # SN-free static field -> no contamination concern; deep R/I template from 3
+  # nights, hold out 20100121 for the science difference. (20100122 was the
+  # original held-out night but the NOIRLab archive was 502-ing during fetch;
+  # 20100121 is the same field/adjacent night and fully in hand. Restore 22 as a
+  # 4th template night once the archive recovers if a deeper template is wanted.)
+  nights:
+    - 20100117   # R:9 I:9   (on-disk SA98 counts)
+    - 20100119   # R:9 I:10
+    - 20100120   # R:9 I:14
+
+science:
+  nights:
+    - 20100121   # held out: R:10 I:8
+
+configs:
+  science:
+    # No calibrate_image override: CTIO has no fitted calibrateImage config, so
+    # it resolves the neutral framework default (calibrateImage/neutral_default.py,
+    # schema-compat only). Do NOT point at Nickel's tuned_configs/ -- those are
+    # fitted for a 1024x1024, 0.37"/pix single-amp CCD and live under
+    # instruments/nickel/configs/. Fitting a Y4KCam config is future work.
+    colorterms: apply_colorterms.py
+  coadd:
+    # Y4KCam-tuned visit selection + warp (instruments/ctio1m/configs/coadds/).
+    make_direct_warp: coadds/makeDirectWarp.py
+    select_template_coadd_visits: coadds/selectTemplateCoaddVisits.py
+    select_deep_coadd_visits: coadds/selectDeepCoaddVisits.py
+  dia:
+    # Y4KCam-tuned (bleed mask + SAT-excluded detection + spatial kernel),
+    # resolved instrument-first from instruments/ctio1m/configs/dia/.
+    subtract_images: dia/subtractImages.py
+    detect_and_measure: dia/detectAndMeasure.py
+
+options:
+  jobs: 4
+  concurrent_nights: 2
+  skip_calibs: false
+  skip_science: false
+  rebuild_templates: true
+  skip_dia: false
+  forced_phot: true
+  forced_phot_image_type: diffim   # difference flux at the field centre should be ~0
+  continue_on_error: true
+  use_fallbacks: false   # no fallback chain exists without tuned configs
+
+# No transient -> no light curve (forced_phot above is the quantitative clean-diff check).
+lightcurve:
+  enabled: false
