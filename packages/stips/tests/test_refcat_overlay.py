@@ -117,6 +117,33 @@ def test_refcat_overlay_config_selects_gaia_only():
     assert refcat_overlay_config("monster") is None
 
 
+GAIA_ONLY_QA_PHOTOM = (
+    _REPO_ROOT
+    / "packages/obs_stips/instrument_defaults/configs/refcats_gaia_only_qa_photom.py"
+)
+
+
+def test_gaia_only_qa_photom_points_at_gaia():
+    """The gaia-mode photometric QA ref-match overlay uses Gaia DR3, not PS1.
+
+    science.py applies this (instead of refcats_gaia_ps1_qa_photom.py) when
+    refcat.mode == 'gaia', so the stage1 QA matches the same catalog the
+    calibration used on southern fields with no PS1 coverage.
+    """
+    config = _exec_overlay(GAIA_ONLY_QA_PHOTOM)
+    assert config.connections.refCat == "gaia_dr3"
+    fmap = config.referenceCatalogLoader.refObjLoader.filterMap
+    # Gaia flux base names, both band and physical-filter spellings.
+    assert fmap["r"] == "phot_rp_mean" and fmap["R"] == "phot_rp_mean"
+    assert fmap["v"] == "phot_g_mean" and fmap["b"] == "phot_bp_mean"
+    assert config.referenceCatalogLoader.doApplyColorTerms is False
+
+
 def test_overlays_compile():
-    for overlay in (NEUTRAL_OVERLAY, NICKEL_OVERLAY, GAIA_ONLY_OVERLAY):
+    for overlay in (
+        NEUTRAL_OVERLAY,
+        NICKEL_OVERLAY,
+        GAIA_ONLY_OVERLAY,
+        GAIA_ONLY_QA_PHOTOM,
+    ):
         compile(overlay.read_text(), str(overlay), "exec")
