@@ -198,10 +198,13 @@ class TestPS1Conversion:
         filter_label = exposure.getFilter()
         assert filter_label.bandLabel == "r"
 
-        # Check metadata
+        # Check metadata. The provenance keys are now source-namespaced
+        # (TEMPLATE_*) rather than PS1-specific, since the same converter now
+        # serves every external-template survey.
         metadata = exposure.getMetadata()
-        assert "PS1_FILTER" in metadata.names()
-        assert "PS1_ZEROPOINT" in metadata.names()
+        assert "TEMPLATE_SOURCE" in metadata.names()
+        assert metadata.getScalar("TEMPLATE_SOURCE") == "ps1"
+        assert "TEMPLATE_ZEROPOINT" in metadata.names()
 
     def test_zeropoint_from_header(self, ps1_ingestion_module, sample_ps1_fits):
         """Test that zeropoint is correctly read from FITS header."""
@@ -210,7 +213,7 @@ class TestPS1Conversion:
         )
 
         metadata = exposure.getMetadata()
-        zp = metadata.getScalar("PS1_ZEROPOINT")
+        zp = metadata.getScalar("TEMPLATE_ZEROPOINT")
         assert zp == pytest.approx(25.5, abs=0.01)
 
 
