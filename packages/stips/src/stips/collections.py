@@ -26,6 +26,16 @@ def template_ps1_glob() -> str:
     return "templates/ps1/*"
 
 
+def template_skymapper(band: str) -> str:
+    """SkyMapper external-template collection for ``band``."""
+    return f"templates/skymapper/{band}"
+
+
+def template_skymapper_glob() -> str:
+    """Glob matching all SkyMapper template collections."""
+    return "templates/skymapper/*"
+
+
 def template_deep(tract: int | str, band: str) -> str:
     """Coadd (deep) template collection for ``tract``/``band``.
 

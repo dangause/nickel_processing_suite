@@ -17,6 +17,7 @@ from stips.collections import template_deep_glob as template_deep_glob
 from stips.collections import template_deep_run as template_deep_run
 from stips.collections import template_ps1 as template_ps1
 from stips.collections import template_ps1_glob as template_ps1_glob
+from stips.collections import template_skymapper_glob as template_skymapper_glob
 from stips.core import butler_query
 from stips.core.query import butler_str_literal
 from stips.core.stack import run_butler

@@ -24,6 +24,7 @@ from stips.core.pipeline import (
     template_deep_glob,
     template_ps1,
     template_ps1_glob,
+    template_skymapper_glob,
     validate_night,
 )
 from stips.core.query import butler_str_literal
@@ -93,9 +94,18 @@ def find_template(
             coadds = [c for c in coadds if c.endswith(f"/{band}")]
         return coadds[0] if coadds else None
 
-    # Query PS1 and coadd templates with targeted glob patterns
+    # Query PS1, coadd, and SkyMapper templates with targeted glob patterns.
+    # NOTE: the strategy == "auto" branch above deliberately does NOT consider
+    # SkyMapper. SkyMapper templates are single-epoch, ~2" seeing and at most
+    # 10' wide — auto-selecting one would hand DIA a template shallower and
+    # blurrier than the science image. It is reachable only by explicit
+    # --template / template.type: skymapper, or this legacy discovery path.
     candidates = []
-    for pattern in [template_ps1_glob(), template_deep_glob()]:
+    for pattern in [
+        template_ps1_glob(),
+        template_deep_glob(),
+        template_skymapper_glob(),
+    ]:
         candidates.extend(
             butler_query.list_collections(config, pattern, prefix="templates/") or []
         )

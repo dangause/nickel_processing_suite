@@ -217,3 +217,45 @@ def test_auto_template_skips_coadd_without_template_nights(monkeypatch):
     # PS1 runs for r; coadd skipped because no template_nights for b.
     assert ("ps1", ("r",)) in built
     assert not any(kind == "coadd" for kind, _ in built)
+
+
+# ---------------------------------------------------------------------------
+# SkyMapper is EXPLICIT-ONLY: the "auto" branch must never surface it, while
+# legacy/explicit discovery MAY.
+# ---------------------------------------------------------------------------
+
+
+def test_auto_never_returns_skymapper_even_when_present(monkeypatch):
+    """SkyMapper is EXPLICIT-ONLY: shallow, ~2" seeing, <=10' wide.
+
+    Auto-selecting it would hand DIA a template worse than the science image.
+    """
+    from stips.core import dia
+
+    monkeypatch.setattr(
+        dia.butler_query, "collection_exists", lambda config, name: False
+    )
+    monkeypatch.setattr(
+        dia.butler_query,
+        "list_collections",
+        lambda config, pattern, prefix=None: (
+            ["templates/skymapper/i"] if "skymapper" in pattern else []
+        ),
+    )
+    result = dia.find_template(_config({"r": "r", "i": "i"}), band="i", strategy="auto")
+    assert result is None
+
+
+def test_legacy_discovery_can_return_skymapper(monkeypatch):
+    """Explicit/legacy discovery MAY surface it — that is the opt-in path."""
+    from stips.core import dia
+
+    monkeypatch.setattr(
+        dia.butler_query,
+        "list_collections",
+        lambda config, pattern, prefix=None: (
+            ["templates/skymapper/i"] if "skymapper" in pattern else []
+        ),
+    )
+    result = dia.find_template(_config({"r": "r", "i": "i"}), band="i")
+    assert result == "templates/skymapper/i"
