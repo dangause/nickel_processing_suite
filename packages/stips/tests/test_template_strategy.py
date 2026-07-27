@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import stips.core.dia as dia
+import stips.core.external_template as external_template
 import stips.core.ps1_template as ps1_template
 import stips.core.run as run
 
@@ -107,11 +108,14 @@ def test_ps1_template_run_rejects_when_no_ps1_bands():
 
 
 def test_ps1_template_run_skips_existing_without_overwrite(monkeypatch):
+    # ps1_template.run is now a thin shim over external_template.run (F-054);
+    # the skip-if-exists policy and stack dispatch live there, so that's what
+    # must be patched for this to intercept.
     monkeypatch.setattr(
-        ps1_template, "check_exists", lambda band, config, collection: True
+        external_template, "check_exists", lambda source, band, config, collection: True
     )
     stack = mock.Mock(side_effect=AssertionError("must not reach the stack on skip"))
-    monkeypatch.setattr(ps1_template, "run_with_stack", stack)
+    monkeypatch.setattr(external_template, "run_with_stack", stack)
 
     res = ps1_template.run(ra=1.0, dec=2.0, band="r", config=_config(NICKEL_MAP))
 
@@ -123,9 +127,9 @@ def test_ps1_template_run_skips_existing_without_overwrite(monkeypatch):
 
 def test_ps1_template_run_overwrite_bypasses_exists_check(monkeypatch):
     exists = mock.Mock(return_value=True)
-    monkeypatch.setattr(ps1_template, "check_exists", exists)
+    monkeypatch.setattr(external_template, "check_exists", exists)
     monkeypatch.setattr(
-        ps1_template,
+        external_template,
         "run_with_stack",
         mock.Mock(return_value=mock.Mock(returncode=0, stdout="", stderr="")),
     )

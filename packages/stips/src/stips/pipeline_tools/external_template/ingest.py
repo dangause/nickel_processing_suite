@@ -32,13 +32,20 @@ from .sources import TemplateSourceError, get_source
 log = logging.getLogger(__name__)
 
 
-def _resolve_source_band(source_name, local_band):
+def _resolve_source_band(source, local_band):
     """Resolve the survey band to download for a LOCAL science band.
 
     The band->template policy lives in the active instrument profile's
     ``template_band_maps[source]`` (with the legacy ``ps1_band_map`` as the
     fallback for ``ps1``), so a fork expresses its own filter policy in the
-    profile instead of editing the framework.
+    profile instead of editing the framework. Routed through the adapter's own
+    ``TemplateSource.band_map(config)`` (``sources/base.py``) rather than
+    duck-typing ``template_band_map`` directly here, so that protocol method
+    has a real production caller instead of only being implemented.
+
+    Args:
+        source: The resolved ``TemplateSource`` adapter (``get_source(name)``).
+        local_band: Local science band requested on the command line.
 
     Returns the survey band name, or None when ``local_band`` is not eligible
     for this source. If the profile cannot be loaded at all (e.g.
@@ -47,24 +54,24 @@ def _resolve_source_band(source_name, local_band):
     """
     try:
         from stips.core.config import load_active_profile
-        from stips.core.pipeline import template_band_map
 
         prof = load_active_profile()
 
         class _ConfigLike:
-            """Minimal duck-type so ``template_band_map`` stays the one source
-            of truth for the map lookup (it reads only ``config.profile``)."""
+            """Minimal duck-type so ``TemplateSource.band_map`` stays the one
+            source of truth for the map lookup (it reads only
+            ``config.profile``)."""
 
             def __init__(self, profile):
                 self.profile = profile
 
-        band_map = template_band_map(_ConfigLike(prof), source_name)
+        band_map = source.band_map(_ConfigLike(prof))
     except Exception as e:
         log.warning(
             "Could not load instrument profile (%s); assuming %s band == "
             "local band %r",
             e,
-            source_name,
+            source.name,
             local_band,
         )
         return local_band
@@ -74,7 +81,7 @@ def _resolve_source_band(source_name, local_band):
     log.error(
         "Band %r is not %s-eligible for the active instrument; eligible: %s",
         local_band,
-        source_name,
+        source.name,
         ", ".join(sorted(band_map)) or "(none configured)",
     )
     return None
@@ -225,7 +232,7 @@ def main(argv=None):
 
     # Map local band to the survey band (via the active profile) if not given.
     if args.source_band is None:
-        args.source_band = _resolve_source_band(source.name, args.band)
+        args.source_band = _resolve_source_band(source, args.band)
         if args.source_band is None:
             return 1
         log.info(
@@ -304,19 +311,24 @@ def main(argv=None):
         overwrite=args.overwrite,
     )
 
-    # Record template metadata (non-fatal on failure).
+    # Record template metadata (non-fatal on failure). The date-range fields
+    # are a sentinel, not a real observation date range, for every external
+    # survey: "PS1" is kept literally for PS1 (so existing recorded metadata
+    # stays consistent); every other source gets the source-agnostic
+    # "EXTERNAL" sentinel rather than the misleading literal "PS1".
     try:
         from stips.pipeline_tools.template_metadata import TemplateMetadata
 
+        date_sentinel = "PS1" if source.name == "ps1" else "EXTERNAL"
         metadata_mgr = TemplateMetadata(args.repo)
         metadata_mgr.record_template(
             collection=args.collection,
-            start_date="PS1",
-            end_date="PS1",
+            start_date=date_sentinel,
+            end_date=date_sentinel,
             tract=str(data_id["tract"]) if "tract" in data_id else None,
             band=args.band,
             description=f"{source.name} {args.source_band}-band template",
-            source=args.source,
+            source=source.name,
             ps1_filter=args.source_band,
             ps1_ra=args.ra,
             ps1_dec=args.dec,
