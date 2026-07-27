@@ -242,6 +242,30 @@ These are the real `InstrumentProfile` fields (from
   Nickel maps only its `{"r": "r", "i": "i"}`; a Sloan fork could add
   `{"g": "g"}`. The default (empty dict) means **no PS1 templates** — the safe
   choice for an unknown fork, which then uses coadd templates for every band.
+- **`template_band_maps`** — Per-source external-template band policy: `SOURCE
+  NAME -> (LOCAL band -> that survey's band)`, e.g.
+  `{"skymapper": {"r": "r", "i": "i"}}`. This is **separate** from
+  `ps1_band_map` above and does not replace it: `ps1_band_map` is also exported
+  as `STIPS_PS1_BAND_MAP` (JSON) by `run_with_stack()` and consumed by the
+  in-stack `refcats_gaia_ps1*.py` pex_config overlays to build the PS1
+  reference-catalog filterMap, so it cannot be renamed or folded into the
+  generic map without breaking that consumer. For `source="ps1"`,
+  `template_band_map(config, "ps1")` (`stips.core.pipeline`) checks
+  `template_band_maps["ps1"]` first and falls back to `ps1_band_map` when no
+  entry exists — so a profile written before `template_band_maps` existed keeps
+  working untouched. Add a new survey by giving it its own key here; you do
+  not need to touch `ps1_band_map` to do so.
+
+  **Band maps are not identity maps — worked example.** The CTIO 1.0m profile
+  (`instruments/ctio1m/profile.py`) is Johnson-Cousins (`U`/`B`/`V`/`R`/`I`).
+  SkyMapper's `v` filter is a Strömgren-like **violet band at ~384 nm** — not
+  Johnson V (~551 nm). An identity map (`"v": "v"`) would silently fetch a
+  near-UV template for a green science image. CTIO's map is therefore
+  `{"skymapper": {"r": "r", "i": "i"}}` — `v` is **deliberately excluded**
+  rather than mismapped, because the honest match (SkyMapper `g` at ~510 nm)
+  needs a colorterm nobody has fit yet. Treat every entry in a
+  `template_band_maps` map as a claim that needs its own justification, not a
+  name-matching exercise.
 - **`fetch_data`** — Optional callable hook: `fetch_data(night, config, *,
   overwrite=False) -> "ok" | "not_found" | "failed"`, used by `stips download`.
   Wire it from a co-located module (Nickel's `profile.py` does `from fetch import

@@ -29,7 +29,14 @@ Structural pipeline scaffolding and geometry-agnostic glue:
   its own (see `instruments/ctio1m/configs/makeSkyMap.py`, 0.289"/px).
 - `configs/dia/*.py`, `configs/coadds/makeDirectWarp_relaxed.py` — DIA/coadd
   kernel and warp-selection tunings. Reference tunings from the Nickel 1-m,
-  resolved instrument-dir-first.
+  resolved instrument-dir-first. `configs/dia/subtractImages_skymapper.py` is a
+  partial exception: it is only exercised when a fork opts into
+  `template.type: skymapper`, and its `config.mode = "auto"` choice (rather
+  than PS1's hardcoded `convolveTemplate`) is a direct consequence of
+  SkyMapper's own seeing (~1.8–2.3″ at NGC2298, verified 2026-07-27) not
+  reliably beating the science seeing. A fork adopting SkyMapper templates
+  **MUST review** this file against its own typical seeing before relying on
+  it — `mode = "auto"` is the safe default, not a universally-correct one.
 - `configs/filter_map.py` — reference band → refcat-column map covering the
   Nickel and CTIO filter inventories. A fork with a different filter set or
   refcat should override it.
@@ -112,3 +119,4 @@ parameters to produce `calibrateImage/tuned_configs/*` (recipes under
 | `apply_colorterms.py` | instrument-aware, off if empty | inherits neutral |
 | `makeSkyMap.py` | reference geometry (0.40"/px) | inherits neutral |
 | `DRP.yaml` thresholds | reference (Nickel-derived) | inherits neutral |
+| `dia/subtractImages_skymapper.py` | `mode="auto"` (MUST review vs. fork's seeing) | inherits neutral |

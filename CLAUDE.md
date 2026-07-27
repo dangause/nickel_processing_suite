@@ -483,8 +483,26 @@ leaves dithered pointings with no PSF-matching kernel candidates
 ### Southern fields have no PS1 coverage
 PS1 (Pan-STARRS1) covers dec ≳ −30° only. For a southern target the `gaia_ps1`
 refcat mode has no PS1 photometry: astrometry (Gaia DR3) still works, but
-photometric calibration needs MONSTER shards (`refcat.mode: monster`) or a future
-Gaia-photometry path.
+photometric calibration needs `refcat.mode: gaia` (Gaia-only) or MONSTER shards
+(`refcat.mode: monster`).
+
+For **templates**, southern fields have two options, in order of preference:
+
+1. **`template.type: coadd`** — a CTIO self-coadd from SN-free epochs. This is
+   the validated path (NGC2298, Dec −36) and is same-instrument, which avoids
+   the cross-instrument registration and PSF-matching problems entirely.
+2. **`template.type: skymapper`** — a SkyMapper DR4 external cutout. **Use only
+   when no SN-free epochs exist to self-coadd.** Verified limits (2026-07-27):
+   - the DR4 SIA serves **single-epoch frames, not stacks** (only 100 s `main`
+     frames are usable; 5 s `short` frames are rejected)
+   - cutouts are **hard-capped at 0.17° (10.2′)**, smaller than the Y4KCam
+     ~20′ FOV — dithered pointings will hit `NoKernelCandidatesError`
+   - main-frame seeing is ~1.8–2.3″, i.e. **not sharper than the science**, so
+     `subtractImages_skymapper.py` does not assume `convolveTemplate`
+   - **SkyMapper `v` is a ~384 nm violet filter, NOT Johnson V (~551 nm).** Only
+     `r` and `i` are mapped for Y4KCam; see `template_band_maps` in the profile.
+
+   SkyMapper is **explicit-only** — `template.type: auto` never selects it.
 
 ### Coordinate precision for forced photometry
 Target RA/Dec must use full TNS precision (sexagesimal → decimal, 6+ decimal
