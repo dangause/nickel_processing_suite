@@ -84,29 +84,32 @@ def select_frame(
         r for r in in_band if (r.get("image_type") or "").strip() == TEMPLATE_IMAGE_TYPE
     ]
     if not main:
-        # `main` is empty here, so every in-band row is a non-main ("short")
-        # frame; count them directly rather than via a subtraction that would
-        # silently go stale if this branch's precondition ever changed.
+        # `main` is empty here, so count the "short" frames specifically
+        # (rather than everything non-main) so the label stays accurate even
+        # if the API ever returns a third image_type.
         n_short = len(
-            [
-                r
-                for r in in_band
-                if (r.get("image_type") or "").strip() != TEMPLATE_IMAGE_TYPE
-            ]
+            [r for r in in_band if (r.get("image_type") or "").strip() == "short"]
         )
+        n_other = len(in_band) - n_short
+        other_note = f", plus {n_other} other frame(s)" if n_other else ""
         raise TemplateSourceError(
             f"SkyMapper has no 'main' (100 s) {band}-band frames at this "
-            f"position — only {n_short} 'short' (5 s) frame(s), which are far "
-            "too shallow to use as a DIA template. SkyMapper cannot template "
-            "this field; build a CTIO self-coadd template instead "
-            "(template.type: coadd)."
+            f"position — only {n_short} 'short' (5 s) frame(s){other_note}, "
+            "which are far too shallow to use as a DIA template. SkyMapper "
+            "cannot template this field; build a CTIO self-coadd template "
+            "instead (template.type: coadd)."
         )
 
     windowed = main
-    if mjd_start is not None:
-        windowed = [r for r in windowed if (r.get("mjd_obs") or 0.0) >= mjd_start]
-    if mjd_end is not None:
-        windowed = [r for r in windowed if (r.get("mjd_obs") or 0.0) <= mjd_end]
+    if mjd_start is not None or mjd_end is not None:
+        # A window is requested: a row with no parseable mjd_obs cannot be
+        # shown to satisfy it, so it must be excluded rather than defaulted
+        # to 0.0 (which would arbitrarily pass one bound and fail the other).
+        windowed = [r for r in windowed if r.get("mjd_obs") is not None]
+        if mjd_start is not None:
+            windowed = [r for r in windowed if r["mjd_obs"] >= mjd_start]
+        if mjd_end is not None:
+            windowed = [r for r in windowed if r["mjd_obs"] <= mjd_end]
     if not windowed:
         raise TemplateSourceError(
             f"SkyMapper has {len(main)} 'main' {band}-band frame(s) here, but "
@@ -115,6 +118,13 @@ def select_frame(
         )
 
     best = min(windowed, key=lambda r: r.get("mean_fwhm") or float("inf"))
+    if best.get("mean_fwhm") is None:
+        log.warning(
+            "Selected SkyMapper frame %s has no usable mean_fwhm; the "
+            "best-seeing pick among %d candidate(s) is arbitrary.",
+            best.get("unique_image_id"),
+            len(windowed),
+        )
     log.info(
         'Selected SkyMapper frame %s: exptime=%.0fs, FWHM=%.2f", MJD=%.5f',
         best.get("unique_image_id"),
@@ -139,7 +149,16 @@ class SkyMapperSource:
         return template_band_map(config, self.name)
 
     def default_zeropoint(self, header: Any) -> float:
-        exptime = float(header.get("EXPTIME", 0.0) or 0.0)
+        raw = header.get("EXPTIME", 0.0) or 0.0
+        try:
+            exptime = float(raw)
+        except (TypeError, ValueError):
+            log.warning(
+                "SkyMapper frame has non-numeric EXPTIME %r; assuming 'short' "
+                "(5 s) for the conservative zeropoint.",
+                raw,
+            )
+            exptime = 0.0
         kind = "main" if exptime >= 50.0 else "short"
         return DEFAULT_ZEROPOINTS[kind]
 

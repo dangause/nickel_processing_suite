@@ -122,6 +122,9 @@ def test_adapters_do_not_import_lsst():
 # --- SkyMapper SIA parsing / frame selection ---------------------------------
 
 from stips.pipeline_tools.external_template.sources import skymapper as sm  # noqa: E402
+from stips.pipeline_tools.external_template.sources.skymapper import (  # noqa: E402
+    DEFAULT_ZEROPOINTS,
+)
 
 SIA_CSV = """image_name,band,exptime,mjd_obs,image_type,mean_fwhm,zpapprox,unique_image_id,get_fits
 a,r,5.0,56972.69752315,short,2.97565,25.38060,20141111164425-17,http://x/a
@@ -198,3 +201,114 @@ def test_default_zeropoint_differs_for_main_and_short():
 def test_skymapper_band_map_reads_profile():
     cfg = _config(template_band_maps={"skymapper": {"r": "r", "i": "i"}})
     assert sm.SkyMapperSource().band_map(cfg) == {"r": "r", "i": "i"}
+
+
+# --- Review findings ----------------------------------------------------------
+
+
+def test_default_zeropoint_handles_non_numeric_exptime(caplog):
+    """A malformed EXPTIME must not crash; fall back to the conservative 'short'."""
+    src = sm.SkyMapperSource()
+    with caplog.at_level("WARNING"):
+        result = src.default_zeropoint({"EXPTIME": "bad"})
+    assert result == pytest.approx(DEFAULT_ZEROPOINTS["short"])
+    assert "bad" in caplog.text
+
+
+def test_default_zeropoint_handles_missing_exptime():
+    """Missing EXPTIME already falls back to 0.0 -> 'short'; pin the behavior."""
+    src = sm.SkyMapperSource()
+    assert src.default_zeropoint({}) == pytest.approx(DEFAULT_ZEROPOINTS["short"])
+
+
+def test_select_frame_excludes_undated_row_from_mjd_window():
+    """A missing mjd_obs must be excluded when a window is requested, not
+
+    silently included via a 0.0 fallback that happens to satisfy one bound.
+    """
+    rows = [
+        {
+            "band": "r",
+            "image_type": "main",
+            "exptime": 100.0,
+            "mjd_obs": None,
+            "mean_fwhm": 1.0,
+            "unique_image_id": "undated",
+        },
+        {
+            "band": "r",
+            "image_type": "main",
+            "exptime": 100.0,
+            "mjd_obs": 10.0,
+            "mean_fwhm": 2.0,
+            "unique_image_id": "dated",
+        },
+    ]
+    chosen = sm.select_frame(rows, band="r", mjd_end=50.0)
+    assert chosen["unique_image_id"] == "dated"
+
+
+def test_select_frame_no_window_still_includes_undated_rows():
+    """When no MJD window is requested, undated rows remain eligible."""
+    rows = [
+        {
+            "band": "r",
+            "image_type": "main",
+            "exptime": 100.0,
+            "mjd_obs": None,
+            "mean_fwhm": 1.0,
+            "unique_image_id": "undated",
+        },
+        {
+            "band": "r",
+            "image_type": "main",
+            "exptime": 100.0,
+            "mjd_obs": 100.0,
+            "mean_fwhm": 2.0,
+            "unique_image_id": "dated",
+        },
+    ]
+    chosen = sm.select_frame(rows, band="r")
+    assert chosen["unique_image_id"] == "undated"
+
+
+def test_select_frame_logs_warning_when_seeing_is_unknown(caplog):
+    """All-None seeing picks are arbitrary; the log must say so."""
+    rows = [
+        {
+            "band": "r",
+            "image_type": "main",
+            "exptime": 100.0,
+            "mjd_obs": 100.0,
+            "mean_fwhm": None,
+            "unique_image_id": "a",
+        },
+        {
+            "band": "r",
+            "image_type": "main",
+            "exptime": 100.0,
+            "mjd_obs": 101.0,
+            "mean_fwhm": None,
+            "unique_image_id": "b",
+        },
+    ]
+    with caplog.at_level("WARNING"):
+        sm.select_frame(rows, band="r")
+    assert "fwhm" in caplog.text.lower() or "seeing" in caplog.text.lower()
+
+
+def test_select_frame_no_main_message_counts_short_specifically():
+    """The count/label must specifically describe 'short' frames, not just
+
+    'everything that isn't main' — future-proof against a third image_type.
+    """
+    rows = [
+        {"band": "r", "image_type": "short", "exptime": 5.0},
+        {"band": "r", "image_type": "short", "exptime": 5.0},
+        {"band": "r", "image_type": "weird", "exptime": 30.0},
+    ]
+    with pytest.raises(sm.TemplateSourceError) as excinfo:
+        sm.select_frame(rows, band="r")
+    message = str(excinfo.value)
+    assert "2 'short'" in message
+    assert "weird" in message.lower() or "1 other" in message.lower()
