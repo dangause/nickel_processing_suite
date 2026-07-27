@@ -73,6 +73,15 @@ profile = InstrumentProfile(
     # to PS1 r/i. u/b/v have no PS1 equivalent and fall back to coadd templates in
     # "auto" mode. Matches the reference Nickel r/i policy.
     ps1_band_map={"r": "r", "i": "i"},
+    # External-template band policy per source. SkyMapper (DR4) serves u/v/g/r/i/z
+    # but its "v" is a Stromgren-like ~384nm VIOLET filter — NOT Johnson V
+    # (~551nm), which Y4KCam's "v" is. Mapping v->v would fetch a near-UV
+    # template for a green science image. The nearest SkyMapper match to
+    # Johnson V is g (~510nm), but that needs a colorterm nobody has fit, so v
+    # is EXCLUDED rather than silently mismapped.
+    template_band_maps={
+        "skymapper": {"r": "r", "i": "i"},
+    },
     # FITS INSTRUME is "Y4KCam" (the camera), not the instrument name "CTIO1m".
     instrument_header_value="Y4KCam",
     header_map={

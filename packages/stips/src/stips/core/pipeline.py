@@ -118,6 +118,25 @@ def ps1_band_map(config: "Config") -> dict[str, str]:
     return dict(getattr(prof, "ps1_band_map", None) or {})
 
 
+def template_band_map(config: "Config", source: str) -> dict[str, str]:
+    """LOCAL science band -> ``source``'s band name, from the active profile.
+
+    Reads ``profile.template_band_maps[source]``. For ``source == "ps1"`` this
+    falls back to the older ``profile.ps1_band_map`` when no explicit entry
+    exists, so profiles written before ``template_band_maps`` keep working.
+
+    An empty dict means "this instrument takes no templates from that survey" —
+    the safe default for an unknown fork.
+    """
+    prof = config.profile
+    maps = dict(getattr(prof, "template_band_maps", None) or {})
+    if source in maps:
+        return dict(maps[source])
+    if source == "ps1":
+        return dict(getattr(prof, "ps1_band_map", None) or {})
+    return {}
+
+
 def ps1_eligible_bands(config: "Config") -> list[str]:
     """Local science bands eligible for PS1 templates (``ps1_band_map`` keys)."""
     return list(ps1_band_map(config).keys())

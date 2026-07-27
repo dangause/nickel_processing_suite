@@ -151,6 +151,16 @@ class InstrumentProfile:
     # ``{"g": "g"}``. The default (empty dict) means "no PS1 templates" — the safe
     # choice for an unknown fork, which then uses coadd templates for every band.
     ps1_band_map: dict[str, str] = field(default_factory=dict)
+    # Per-source external-template band policy: SOURCE NAME -> (LOCAL band ->
+    # that survey's band). Distinct from ``ps1_band_map`` above, which is
+    # ALSO consumed by the in-stack refcat configs via STIPS_PS1_BAND_MAP and
+    # therefore cannot be generalized away. For source "ps1" this field takes
+    # precedence when present and falls back to ``ps1_band_map`` when absent,
+    # so existing profiles keep working untouched.
+    #
+    # Band names are NOT interchangeable across surveys: SkyMapper's "v" is a
+    # ~384nm violet filter, not Johnson V (~551nm). Map deliberately.
+    template_band_maps: dict[str, dict[str, str]] = field(default_factory=dict)
     # Optional data-fetch hook. Signature:
     #   fetch_data(night: str, config: Config, *, overwrite: bool = False) -> str
     # Returns one of "ok" | "not_found" | "failed". When None, `stips download`
