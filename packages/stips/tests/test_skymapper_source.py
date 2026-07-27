@@ -117,3 +117,84 @@ def test_adapters_do_not_import_lsst():
                 if name == "lsst" or name.startswith("lsst."):
                     offenders.append(f"{path.name}:{node.lineno} imports {name}")
     assert not offenders, "adapters must not import lsst: " + "; ".join(offenders)
+
+
+# --- SkyMapper SIA parsing / frame selection ---------------------------------
+
+from stips.pipeline_tools.external_template.sources import skymapper as sm  # noqa: E402
+
+SIA_CSV = """image_name,band,exptime,mjd_obs,image_type,mean_fwhm,zpapprox,unique_image_id,get_fits
+a,r,5.0,56972.69752315,short,2.97565,25.38060,20141111164425-17,http://x/a
+b,r,5.0,56987.63652778,short,2.85622,25.44530,20141126151635-17,http://x/b
+c,r,5.0,57050.54799769,short,4.51323,25.38400,20150128130907-17,http://x/c
+d,r,100.0,58759.69835648,main,2.33374,28.78460,20191003164537-17,http://x/d
+e,r,100.0,58928.40702546,main,1.76150,28.73250,20200320094604-17,http://x/e
+"""
+
+
+def test_parse_sia_csv_returns_typed_rows():
+    rows = sm.parse_sia_csv(SIA_CSV)
+    assert len(rows) == 5
+    assert rows[0]["image_type"] == "short"
+    assert rows[3]["exptime"] == pytest.approx(100.0)
+    assert rows[4]["mean_fwhm"] == pytest.approx(1.76150)
+
+
+def test_select_frame_ignores_short_exposures():
+    """5s 'short' frames are never templates, even when their seeing is best."""
+    chosen = sm.select_frame(sm.parse_sia_csv(SIA_CSV), band="r")
+    assert chosen["image_type"] == "main"
+
+
+def test_select_frame_picks_best_seeing_among_main():
+    chosen = sm.select_frame(sm.parse_sia_csv(SIA_CSV), band="r")
+    assert chosen["unique_image_id"] == "20200320094604-17"
+    assert chosen["mean_fwhm"] == pytest.approx(1.76150)
+
+
+def test_select_frame_honours_mjd_window():
+    """MJD windowing exists so template epochs can exclude the transient."""
+    chosen = sm.select_frame(sm.parse_sia_csv(SIA_CSV), band="r", mjd_end=58800.0)
+    assert chosen["unique_image_id"] == "20191003164537-17"
+
+
+def test_select_frame_raises_when_no_main_frames_and_counts_shorts():
+    rows = [r for r in sm.parse_sia_csv(SIA_CSV) if r["image_type"] == "short"]
+    with pytest.raises(sm.TemplateSourceError) as excinfo:
+        sm.select_frame(rows, band="r")
+    message = str(excinfo.value)
+    assert "3" in message  # reports how many short frames were found
+    assert "coadd" in message.lower()  # points at the working alternative
+
+
+def test_select_frame_raises_when_mjd_window_excludes_everything():
+    with pytest.raises(sm.TemplateSourceError, match="MJD"):
+        sm.select_frame(sm.parse_sia_csv(SIA_CSV), band="r", mjd_start=60000.0)
+
+
+def test_select_frame_filters_by_band():
+    rows = sm.parse_sia_csv(SIA_CSV)
+    for row in rows:
+        row["band"] = "i"
+    with pytest.raises(sm.TemplateSourceError, match="band"):
+        sm.select_frame(rows, band="r")
+
+
+def test_native_fwhm_reads_qafwhm_header_card():
+    assert sm.SkyMapperSource().native_fwhm({"QAFWHM": 1.7615}) == pytest.approx(1.7615)
+
+
+def test_native_fwhm_falls_back_when_card_missing():
+    """A sane default, not a crash — the frame is still usable."""
+    assert sm.SkyMapperSource().native_fwhm({}) == pytest.approx(2.0)
+
+
+def test_default_zeropoint_differs_for_main_and_short():
+    src = sm.SkyMapperSource()
+    assert src.default_zeropoint({"EXPTIME": 100.0}) == pytest.approx(28.75)
+    assert src.default_zeropoint({"EXPTIME": 5.0}) == pytest.approx(25.4)
+
+
+def test_skymapper_band_map_reads_profile():
+    cfg = _config(template_band_maps={"skymapper": {"r": "r", "i": "i"}})
+    assert sm.SkyMapperSource().band_map(cfg) == {"r": "r", "i": "i"}
