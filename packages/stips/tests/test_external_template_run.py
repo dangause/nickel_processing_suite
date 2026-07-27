@@ -134,3 +134,21 @@ def test_ps1_shim_delegates_with_source_ps1(monkeypatch):
     result = ps1_template.run(ra=210.9, dec=54.3, band="r", config=cfg)
     assert seen["source"] == "ps1"
     assert result.collection == "templates/ps1/r"
+
+
+def test_cli_external_template_is_registered():
+    from click.testing import CliRunner
+    from stips.cli import cli
+
+    result = CliRunner().invoke(cli, ["external-template", "--help"])
+    assert result.exit_code == 0
+    assert "--source" in result.output
+    assert "skymapper" in result.output
+
+
+def test_cli_ps1_template_still_registered():
+    from click.testing import CliRunner
+    from stips.cli import cli
+
+    result = CliRunner().invoke(cli, ["ps1-template", "--help"])
+    assert result.exit_code == 0

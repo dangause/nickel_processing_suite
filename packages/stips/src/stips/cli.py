@@ -907,6 +907,118 @@ def ps1_template(
 
 
 # =============================================================================
+# external-template - Ingest an external survey template for DIA
+# =============================================================================
+
+
+@cli.command("external-template")
+@click.option(
+    "--source",
+    type=click.Choice(["ps1", "skymapper"]),
+    required=True,
+    help="Survey to fetch the template from",
+)
+@click.option("--ra", type=float, required=True, help="Right ascension in degrees")
+@click.option("--dec", type=float, required=True, help="Declination in degrees")
+@click.option(
+    "-b",
+    "--band",
+    required=True,
+    help="Local science band; must be mapped for this source in the profile",
+)
+@click.option(
+    "--collection", help="Output collection (default: templates/{source}/{band})"
+)
+@click.option("--tract", type=int, help="Tract number (auto-determined if not set)")
+@click.option(
+    "--size", type=float, default=0.2, help="Cutout size in degrees (default: 0.2)"
+)
+@click.option("--degrade-seeing", type=float, help="Convolve to this FWHM in arcsec")
+@click.option("--mjd-start", type=float, help="Earliest frame MJD to consider")
+@click.option("--mjd-end", type=float, help="Latest frame MJD to consider")
+@click.option("--overwrite", is_flag=True, help="Replace existing template")
+@pass_config
+def external_template_cmd(
+    ctx: click.Context,
+    config: cfg_module.Config,
+    source: str,
+    ra: float,
+    dec: float,
+    band: str,
+    collection: str | None,
+    tract: int | None,
+    size: float,
+    degrade_seeing: float | None,
+    mjd_start: float | None,
+    mjd_end: float | None,
+    overwrite: bool,
+) -> None:
+    """Download and ingest an external survey template for difference imaging.
+
+    Eligible bands come from the profile's ``template_band_maps[source]``
+    (falling back to ``ps1_band_map`` for source=ps1).
+
+    \b
+    SkyMapper caveats (southern fields, Dec <= -30):
+      - single-epoch 100s frames, NOT deep stacks
+      - cutouts capped at 0.17 deg (10.2'), smaller than the Y4KCam FOV
+      - prefer a CTIO self-coadd template when SN-free epochs exist
+
+    \b
+    Example:
+        stips external-template --source ps1 --ra 210.91 --dec 54.32 -b r
+        stips external-template --source skymapper --ra 102.25 --dec -36.01 -b i
+    """
+    from stips.core import external_template as et
+    from stips.core.pipeline import template_band_map
+
+    eligible = template_band_map(config, source)
+    if band not in eligible:
+        allowed = ", ".join(sorted(eligible)) or "(none configured)"
+        _print_error(
+            f"Band {band!r} has no {source} template mapping for this "
+            f"instrument; available: {allowed}"
+        )
+        sys.exit(1)
+
+    _print_info(
+        f"Ingesting {source} {band}-band template at RA={ra:.4f}, Dec={dec:.4f}..."
+    )
+
+    result = et.run(
+        source,
+        ra,
+        dec,
+        band,
+        config,
+        collection=collection,
+        tract=tract,
+        size=size,
+        degrade_seeing=degrade_seeing,
+        mjd_start=mjd_start,
+        mjd_end=mjd_end,
+        overwrite=overwrite,
+    )
+
+    if result.skipped:
+        _print_info(f"{source} template already exists in {result.collection}")
+        _print_info("Use --overwrite to replace")
+        return
+
+    details = [f"  Collection: {result.collection}"]
+    if result.tract is not None:
+        details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
+    if result.fits_path:
+        details.append(f"  FITS file: {result.fits_path}")
+    _report_result(
+        result,
+        success_msg=f"\n✓ {source} template ingested",
+        fail_msg=f"{source} template ingestion failed",
+        details=details,
+    )
+
+
+# =============================================================================
 # fphot - Forced photometry at RA/Dec
 # =============================================================================
 
