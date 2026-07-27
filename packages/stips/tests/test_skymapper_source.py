@@ -312,3 +312,103 @@ def test_select_frame_no_main_message_counts_short_specifically():
     message = str(excinfo.value)
     assert "2 'short'" in message
     assert "weird" in message.lower() or "1 other" in message.lower()
+
+
+# --- SkyMapper fetch ----------------------------------------------------------
+
+import logging as _logging  # noqa: E402
+
+
+class _FakeResponse:
+    def __init__(self, *, status_code=200, text="", content=b""):
+        self.status_code = status_code
+        self.text = text
+        self.content = content
+
+
+class _FakeSession:
+    """Records requests and replays canned responses in order."""
+
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.calls = []
+
+    def get(self, url, params=None, timeout=None):
+        self.calls.append((url, dict(params or {})))
+        return self._responses.pop(0)
+
+
+def _ok_session(fits_bytes=b"SIMPLE  =                    T" + b" " * 20000):
+    return _FakeSession(
+        [
+            _FakeResponse(text=SIA_CSV),
+            _FakeResponse(content=fits_bytes),
+        ]
+    )
+
+
+def test_fetch_writes_fits_and_returns_path(tmp_path):
+    session = _ok_session()
+    path = sm.SkyMapperSource().fetch(
+        102.2475, -36.0053, "r", 0.15, tmp_path, session=session
+    )
+    assert path.exists()
+    assert path.read_bytes().startswith(b"SIMPLE")
+
+
+def test_fetch_requests_the_selected_frame(tmp_path):
+    session = _ok_session()
+    sm.SkyMapperSource().fetch(102.2475, -36.0053, "r", 0.15, tmp_path, session=session)
+    _, image_params = session.calls[1]
+    assert image_params["image"] == "20200320094604-17"
+    assert image_params["format"] == "fits"
+
+
+def test_fetch_clamps_size_to_service_limit(tmp_path, caplog):
+    """0.4 deg is what the 2023ixf configs use; SkyMapper caps at 0.17."""
+    session = _ok_session()
+    with caplog.at_level(_logging.WARNING):
+        sm.SkyMapperSource().fetch(
+            102.2475, -36.0053, "r", 0.4, tmp_path, session=session
+        )
+    query_params = session.calls[0][1]
+    assert query_params["SIZE"] == "0.17"
+    assert "0.17" in caplog.text
+
+
+def test_fetch_warns_when_cutout_is_smaller_than_fov(tmp_path, caplog):
+    """Y4KCam is ~20'; a 10.2' template leaves dithers with no kernel candidates."""
+    session = _ok_session()
+    with caplog.at_level(_logging.WARNING):
+        sm.SkyMapperSource().fetch(
+            102.2475, -36.0053, "r", 0.17, tmp_path, session=session, fov_arcmin=20.0
+        )
+    assert "20.0" in caplog.text
+    assert "kernel" in caplog.text.lower()
+
+
+def test_fetch_raises_on_query_http_error(tmp_path):
+    session = _FakeSession([_FakeResponse(status_code=400, text="bad")])
+    with pytest.raises(sm.TemplateSourceError, match="400"):
+        sm.SkyMapperSource().fetch(
+            102.2475, -36.0053, "r", 0.15, tmp_path, session=session
+        )
+
+
+def test_fetch_raises_on_truncated_image(tmp_path):
+    session = _FakeSession(
+        [_FakeResponse(text=SIA_CSV), _FakeResponse(content=b"tiny")]
+    )
+    with pytest.raises(sm.TemplateSourceError, match="too small"):
+        sm.SkyMapperSource().fetch(
+            102.2475, -36.0053, "r", 0.15, tmp_path, session=session
+        )
+
+
+def test_fetch_propagates_no_main_frames_error(tmp_path):
+    short_only = "\n".join([SIA_CSV.splitlines()[0]] + SIA_CSV.splitlines()[1:4])
+    session = _FakeSession([_FakeResponse(text=short_only)])
+    with pytest.raises(sm.TemplateSourceError, match="coadd"):
+        sm.SkyMapperSource().fetch(
+            102.2475, -36.0053, "r", 0.15, tmp_path, session=session
+        )

@@ -20,8 +20,12 @@ from __future__ import annotations
 import csv
 import io
 import logging
+from pathlib import Path
 from typing import Any
 
+import requests
+
+from ..imaging import clamp_cutout_size
 from .base import TemplateSourceError
 
 log = logging.getLogger(__name__)
@@ -169,6 +173,109 @@ class SkyMapperSource:
         except (TypeError, ValueError):
             return DEFAULT_FWHM_ARCSEC
         return fwhm if fwhm > 0 else DEFAULT_FWHM_ARCSEC
+
+    def _warn_if_smaller_than_fov(self, size_deg: float, fov_arcmin: float | None):
+        """Warn when the cutout cannot cover the science field of view."""
+        if fov_arcmin is None:
+            return
+        cutout_arcmin = size_deg * 60.0
+        if cutout_arcmin >= fov_arcmin:
+            return
+        log.warning(
+            "SkyMapper cutout is %.1f' but the science FOV is ~%.1f'. Dithered "
+            "pointings will fall outside the template and have NO PSF-matching "
+            "kernel candidates (NoKernelCandidatesError). Expect partial or "
+            "failed subtractions away from the field center.",
+            cutout_arcmin,
+            fov_arcmin,
+        )
+
+    def fetch(
+        self,
+        ra: float,
+        dec: float,
+        src_band: str,
+        size_deg: float,
+        out_dir: Path,
+        *,
+        mjd_start: float | None = None,
+        mjd_end: float | None = None,
+        fov_arcmin: float | None = None,
+        session: Any = None,
+        timeout: int = 180,
+    ) -> Path:
+        """Query the DR4 SIA, pick the best 'main' frame, and download it."""
+        http = session or requests
+        size_deg = clamp_cutout_size(size_deg, self.max_cutout_deg, log)
+        self._warn_if_smaller_than_fov(size_deg, fov_arcmin)
+
+        query_params = {
+            "POS": f"{ra},{dec}",
+            "SIZE": f"{size_deg:g}",
+            "BAND": src_band,
+            "FORMAT": "image/fits",
+            "VERB": "3",
+            "RESPONSEFORMAT": "CSV",
+        }
+        if mjd_start is not None:
+            query_params["MJD_START"] = f"{mjd_start:g}"
+        if mjd_end is not None:
+            query_params["MJD_END"] = f"{mjd_end:g}"
+
+        log.info(
+            "Querying SkyMapper DR4 SIA for %s-band at RA=%.4f, Dec=%.4f "
+            "(%.3f deg = %.1f')",
+            src_band,
+            ra,
+            dec,
+            size_deg,
+            size_deg * 60.0,
+        )
+        response = http.get(SIA_QUERY_URL, params=query_params, timeout=timeout)
+        if response.status_code != 200:
+            raise TemplateSourceError(
+                f"SkyMapper SIA query failed with HTTP {response.status_code} "
+                f"({SIA_QUERY_URL} POS={ra},{dec} BAND={src_band})"
+            )
+
+        frame = select_frame(
+            parse_sia_csv(response.text),
+            band=src_band,
+            mjd_start=mjd_start,
+            mjd_end=mjd_end,
+        )
+
+        image_params = {
+            "image": frame["unique_image_id"],
+            "format": "fits",
+            "pos": f"{ra},{dec}",
+            "size": f"{size_deg:g},{size_deg:g}",
+        }
+        image_response = http.get(SIA_IMAGE_URL, params=image_params, timeout=timeout)
+        if image_response.status_code != 200:
+            raise TemplateSourceError(
+                f"SkyMapper image download failed with HTTP "
+                f"{image_response.status_code} for frame "
+                f"{frame['unique_image_id']}"
+            )
+        if len(image_response.content) < 10000:
+            raise TemplateSourceError(
+                f"SkyMapper returned a response that is too small to be a FITS "
+                f"cutout ({len(image_response.content)} bytes) for frame "
+                f"{frame['unique_image_id']}"
+            )
+
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir / (
+            f"skymapper_{src_band}_ra{ra:.4f}_dec{dec:.4f}_"
+            f"{frame['unique_image_id']}.fits"
+        )
+        out_file.write_bytes(image_response.content)
+        log.info(
+            "Wrote SkyMapper cutout: %s (%d bytes)", out_file, out_file.stat().st_size
+        )
+        return out_file
 
 
 __all__ = [
