@@ -27,6 +27,14 @@ try:
     from astroquery.mast import Observations
 except ImportError:  # pragma: no cover - exercised only when astroquery is absent
     Observations = None
+    # `log` (module logger) is defined further below, after this try/except,
+    # so get a logger by name directly here rather than reordering the
+    # module just to move that assignment earlier.
+    logging.getLogger(__name__).warning(
+        "astroquery is not installed; the MAST download method for PS1 "
+        "templates will be skipped (the fitscut fallback still works). "
+        "Install astroquery to enable it."
+    )
 
 from .. import imaging
 from .base import TemplateSourceError

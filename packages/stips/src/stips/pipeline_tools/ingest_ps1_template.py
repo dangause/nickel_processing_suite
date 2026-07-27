@@ -80,6 +80,17 @@ log = logging.getLogger(__name__)
 # the names still called from this module are imported back here
 # (download_ps1_via_fitscut/download_ps1_via_ps1filenames/open_ps1_fits/
 # write_ps1_cutout have no remaining callers in this file).
+# ps1_file_covers_target / ps1_file_meets_requested_size: kept as aliases of
+# the extracted imaging.* implementations. Tests
+# (tests/test_ps1_templates.py::TestPS1CutoutValidation) still call these
+# names on this module, so they must stay importable here even though the
+# implementations now live in the shared imaging module.
+from stips.pipeline_tools.external_template.imaging import (  # noqa: E402
+    file_covers_target as ps1_file_covers_target,  # noqa: F401
+)
+from stips.pipeline_tools.external_template.imaging import (  # noqa: E402
+    file_meets_requested_size as ps1_file_meets_requested_size,  # noqa: F401
+)
 from stips.pipeline_tools.external_template.sources.ps1 import (  # noqa: E402
     PS1_ZEROPOINTS,
     _resolve_ps1_band,

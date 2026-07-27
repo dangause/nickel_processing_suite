@@ -334,7 +334,7 @@ class _FakeSession:
         self.calls = []
 
     def get(self, url, params=None, timeout=None):
-        self.calls.append((url, dict(params or {})))
+        self.calls.append((url, dict(params or {}), timeout))
         return self._responses.pop(0)
 
 
@@ -359,7 +359,7 @@ def test_fetch_writes_fits_and_returns_path(tmp_path):
 def test_fetch_requests_the_selected_frame(tmp_path):
     session = _ok_session()
     sm.SkyMapperSource().fetch(102.2475, -36.0053, "r", 0.15, tmp_path, session=session)
-    _, image_params = session.calls[1]
+    _, image_params, _ = session.calls[1]
     assert image_params["image"] == "20200320094604-17"
     assert image_params["format"] == "fits"
 
@@ -412,3 +412,21 @@ def test_fetch_propagates_no_main_frames_error(tmp_path):
         sm.SkyMapperSource().fetch(
             102.2475, -36.0053, "r", 0.15, tmp_path, session=session
         )
+
+
+def test_fetch_passes_nondefault_timeout_to_both_requests(tmp_path):
+    """A dropped `timeout=` kwarg in `fetch` must not pass silently.
+
+    `_FakeSession.get` previously accepted `timeout=` but never recorded it,
+    so removing `timeout=` from `fetch` entirely would still pass every
+    existing test. Record the timeout alongside each call and assert both
+    the SIA query and the image download were issued with the non-default
+    timeout passed to `fetch`.
+    """
+    session = _ok_session()
+    sm.SkyMapperSource().fetch(
+        102.2475, -36.0053, "r", 0.15, tmp_path, session=session, timeout=42
+    )
+    assert len(session.calls) == 2
+    for _, _, timeout in session.calls:
+        assert timeout == 42
