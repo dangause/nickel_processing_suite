@@ -1,0 +1,81 @@
+# CTIO 1.0m / Y4KCam — NGC2298 globular-cluster coadd-template DIA, GAIA refcats.
+#
+# PURPOSE: a real-signal DIA test AND the southern Gaia-refcat path (Phase 3 of
+# the DIA consolidate-and-validate effort). NGC2298 is a dense globular cluster
+# with RR Lyrae / variable stars — a deep coadd (each variable averaged toward
+# its mean) minus a held-out epoch (each variable at an instantaneous phase)
+# recovers the variables as real difference sources. Crucially for DIA, the
+# cluster's many MODERATE-brightness UNSATURATED stars are clean PSF-matching
+# kernel candidates — unlike SA98's saturated Landolt standards, whose bleed
+# trails corrupt the kernel solve (see docs/superpowers/notes/2026-07-23-
+# phase0-sa98-verdict.md). NGC2298 (Dec -36) is south of PS1's -30deg limit, so
+# it uses the Gaia-only refcat path (refcat.mode=gaia) — no RSP MONSTER dump.
+#
+# RUNBOOK (stack-activated shell, from the stips-dia-wt worktree):
+#   .venv/bin/stips -c scripts/config/ctio1m/pipeline_ngc2298_gaia.yaml run --dry-run
+#   .venv/bin/stips -c scripts/config/ctio1m/pipeline_ngc2298_gaia.yaml run
+
+env:
+  REPO: "/Users/dangause/Developer/lick/data_ctio/ngc2298_repo"
+  STACK_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack"
+  INSTRUMENT_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/stips-dia-wt/instruments/ctio1m"
+  RAW_PARENT_DIR: "/Users/dangause/Developer/lick/data_ctio"
+  REFCAT_REPO: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/refcats"
+
+object: "NGC2298"
+ra: 102.246542
+dec: -36.005333
+
+# DIA bands with good multi-night coverage.
+bands: ["v", "i"]
+
+# On-demand Gaia refcats for the cone (astrometry AND photometry from Gaia DR3).
+# NGC2298 is south of PS1, so this selects the Gaia-only overlay (refcats_gaia_only.py)
+# and the Gaia-photometry QA ref-match remap (refcats_gaia_only_qa_photom.py).
+refcat:
+  mode: gaia
+  radius_deg: 0.4
+
+template:
+  type: coadd
+  # 3 nights from the Sep-2006 run -> deep coadd; RR Lyrae average toward their
+  # mean across the different-phase epochs.
+  nights:
+    - 20060927
+    - 20060929
+    - 20061001
+
+science:
+  # Held-out Dec-2006 night (~2.5 months later): variables at different phases
+  # than the Sep coadd mean -> recovered as real difference sources.
+  nights:
+    - 20061216
+
+configs:
+  science:
+    # ctio_dense.py: the merged CTIO dense-field astrometry config (matcher
+    # count-caps + Gaia DR3). Single config, no fallback chain — do NOT use
+    # Nickel's tuned_configs/ (fitted for a 1024x1024 CCD).
+    calibrate_image: calibrateImage/ctio_dense.py
+  coadd:
+    make_direct_warp: coadds/makeDirectWarp.py
+    select_template_coadd_visits: coadds/selectTemplateCoaddVisits.py
+    select_deep_coadd_visits: coadds/selectDeepCoaddVisits.py
+  dia:
+    subtract_images: dia/subtractImages.py
+    detect_and_measure: dia/detectAndMeasure.py
+
+options:
+  jobs: 4
+  concurrent_nights: 2
+  skip_calibs: false
+  skip_science: false
+  rebuild_templates: true
+  skip_dia: false
+  forced_phot: true
+  forced_phot_image_type: diffim
+  continue_on_error: true
+  use_fallbacks: false   # ctio_dense is the single science config; no fallback chain
+
+lightcurve:
+  enabled: false

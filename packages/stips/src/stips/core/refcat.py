@@ -97,6 +97,9 @@ PS1_CONVERT_CONFIG = "ps1_config.py"
 
 #: calibrateImage overlay that switches refcats to Gaia/PS1 (opt-in).
 GAIA_PS1_OVERLAY = "refcats_gaia_ps1.py"
+# Gaia-only overlay: astrometry AND photometry from Gaia DR3, for fields south of
+# PS1's -30deg floor (most of CTIO's sky). See refcats_gaia_only.py.
+GAIA_ONLY_OVERLAY = "refcats_gaia_only.py"
 
 
 def refcat_overlay_config(mode: str) -> str | None:
@@ -104,11 +107,15 @@ def refcat_overlay_config(mode: str) -> str | None:
 
     ``None`` means "use the DRP.yaml default" — which is currently MONSTER, so
     ``mode="monster"`` needs no overlay. ``mode="gaia_ps1"`` applies the Gaia/PS1
-    overlay on top of the tuned config. After the default is flipped to Gaia/PS1,
-    this inverts (monster gets an overlay, gaia_ps1 returns None).
+    overlay on top of the tuned config. ``mode="gaia"`` applies the Gaia-only
+    overlay (photometry from Gaia too), for southern fields with no PS1 coverage.
+    After the default is flipped to Gaia/PS1, this inverts (monster gets an
+    overlay, gaia_ps1 returns None).
     """
     if mode == "gaia_ps1":
         return GAIA_PS1_OVERLAY
+    if mode == "gaia":
+        return GAIA_ONLY_OVERLAY
     return None
 
 
@@ -406,6 +413,12 @@ def ensure_refcats(
         result.gaia_status = "failed"
         result.error = f"gaia: {exc}"
         log.warning("Gaia refcat ensure failed: %s", exc)
+
+    # mode="gaia": photometry comes from Gaia too (southern fields, no PS1
+    # coverage), so skip the PS1 fetch entirely.
+    if mode == "gaia":
+        result.ps1_status = "skipped"
+        return result
 
     # PS1 DR2 — photometry, Dec > -30 only.
     try:

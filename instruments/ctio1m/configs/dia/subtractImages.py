@@ -22,6 +22,15 @@ Config hierarchy (see framework default for the full note):
 # --- AL kernel: spatially varying across the large dense field ---
 config.makeKernel.kernel["AL"].kernelSize = 25  # ~5x FWHM at ~1.5" seeing / 0.289"/px
 config.makeKernel.kernel["AL"].scaleByFwhm = False
+# Reduced Alard-Lupton basis: 2 Gaussians, degrees [2, 1] -> 6 + 3 = 9 basis
+# functions (vs the stack default 27). On clean, well-sampled candidates (e.g.
+# NGC2298's unsaturated cluster stars) the full 27-function basis is over-rich and
+# leaves the spatial fit at condition number ~1e6; the reduced basis drops it by
+# ~3 orders of magnitude (cf. investigate/dia-kernel 791f6c7, condnum 2.2e6->700)
+# with no loss of subtraction quality. Sigmas (px) bracket the ~2-5 px PSF.
+config.makeKernel.kernel["AL"].alardNGauss = 2
+config.makeKernel.kernel["AL"].alardDegGauss = [2, 1]
+config.makeKernel.kernel["AL"].alardSigGauss = [1.0, 2.5]
 config.makeKernel.kernel["AL"].spatialKernelOrder = 2  # track PSF variation (was 0)
 config.makeKernel.kernel["AL"].spatialBgOrder = 1
 # 8x8 grid of ~512 px cells over 4104 px, a few candidates per cell -> ~200
