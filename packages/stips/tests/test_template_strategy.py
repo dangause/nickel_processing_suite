@@ -20,9 +20,15 @@ import stips.core.run as run
 NICKEL_MAP = {"r": "r", "i": "i"}
 
 
-def _config(ps1_band_map):
-    """A minimal stand-in Config carrying a profile with the given band map."""
-    return SimpleNamespace(profile=SimpleNamespace(ps1_band_map=ps1_band_map))
+def _config(band_maps):
+    """Accepts a bare ps1 map (legacy call sites) or a per-source dict."""
+    if band_maps and all(isinstance(v, dict) for v in band_maps.values()):
+        return SimpleNamespace(
+            profile=SimpleNamespace(ps1_band_map={}, template_band_maps=band_maps)
+        )
+    return SimpleNamespace(
+        profile=SimpleNamespace(ps1_band_map=band_maps, template_band_maps={})
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -259,3 +265,81 @@ def test_legacy_discovery_can_return_skymapper(monkeypatch):
     )
     result = dia.find_template(_config({"r": "r", "i": "i"}), band="i")
     assert result == "templates/skymapper/i"
+
+
+# ---------------------------------------------------------------------------
+# run._run_external_templates (generic runner; skymapper dispatch)
+# ---------------------------------------------------------------------------
+
+
+def test_run_dispatches_skymapper_template_type(monkeypatch):
+    from stips.core import run as run_module
+
+    calls = []
+
+    def fake_run(source, ra, dec, band, config, **kwargs):
+        calls.append((source, band))
+        from stips.core.external_template import ExternalTemplateResult
+
+        return ExternalTemplateResult(
+            success=True,
+            source=source,
+            band=band,
+            collection=f"templates/{source}/{band}",
+        )
+
+    monkeypatch.setattr("stips.core.external_template.run", fake_run)
+
+    run_cfg = SimpleNamespace(
+        bands=["i"],
+        ra=102.2465,
+        dec=-36.0053,
+        template_size=0.17,
+        template_degrade_seeing=None,
+        template_unity_photocalib=False,
+        rebuild_templates=False,
+        template_mjd_start=None,
+        template_mjd_end=None,
+    )
+    result = SimpleNamespace(template_collections={})
+    run_module._run_external_templates(
+        run_cfg,
+        _config({"skymapper": {"r": "r", "i": "i"}}),
+        result,
+        dry_run=False,
+        source="skymapper",
+    )
+    assert calls == [("skymapper", "i")]
+    assert result.template_collections["i"] == "templates/skymapper/i"
+
+
+def test_run_skips_bands_without_skymapper_mapping(monkeypatch):
+    """CTIO 'v' is Johnson V; SkyMapper 'v' is 384nm violet. Never mapped."""
+    from stips.core import run as run_module
+
+    calls = []
+    monkeypatch.setattr(
+        "stips.core.external_template.run",
+        lambda *a, **k: calls.append(a) or None,
+    )
+    run_cfg = SimpleNamespace(
+        bands=["v", "i"],
+        ra=102.2465,
+        dec=-36.0053,
+        template_size=0.17,
+        template_degrade_seeing=None,
+        template_unity_photocalib=False,
+        rebuild_templates=False,
+        template_mjd_start=None,
+        template_mjd_end=None,
+    )
+    result = SimpleNamespace(template_collections={})
+    run_module._run_external_templates(
+        run_cfg,
+        _config({"skymapper": {"r": "r", "i": "i"}}),
+        result,
+        dry_run=True,
+        source="skymapper",
+    )
+    assert "v" not in result.template_collections
+    assert "i" in result.template_collections
