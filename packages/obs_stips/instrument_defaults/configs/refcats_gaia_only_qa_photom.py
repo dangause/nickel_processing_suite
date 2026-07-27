@@ -23,8 +23,6 @@ _gaia_band_map = {
     "rp": "phot_rp_mean",
 }
 config.referenceCatalogLoader.refObjLoader.filterMap = {
-    key: flux
-    for band, flux in _gaia_band_map.items()
-    for key in (band, band.upper())
+    key: flux for band, flux in _gaia_band_map.items() for key in (band, band.upper())
 }
 config.referenceCatalogLoader.doApplyColorTerms = False
