@@ -6,22 +6,34 @@ Design: `docs/superpowers/specs/2026-07-27-skymapper-template-design.md`
 
 ## Verdict
 
-**The machinery works. The science product does not.**
+**The framework works. SkyMapper's yield is limited by template depth, not by
+configuration — but two real bugs were masking that, and both are now fixed.**
 
-Cross-instrument DIA ran on every visit and the astrometry is excellent — zero
-systematic offset against a 0.289″ pixel, so the registration failure mode seen
-in the earlier PS1→Y4KCam attempt on SN 2009Y did not recur. But a positional
-cross-match against the validated coadd run shows SkyMapper recovers only
-**12% of the coadd's difference-image sources** (1 173 of 9 784), and **67% of
-what it does detect has no coadd counterpart** and is most likely subtraction
-artifact.
+Cross-instrument DIA runs on every visit and the astrometry is excellent (zero
+systematic offset against a 0.289″ pixel), so the PS1→Y4KCam registration failure
+seen on SN 2009Y did not recur.
 
-That is not "a third of the sensitivity" — it is one real source in eight,
-inside a majority-spurious catalogue. **SkyMapper templates should not be used
-to support a transient campaign on a field like this.** Use
-`template.type: coadd`. Reach for `skymapper` only to get a pipeline running
-end-to-end when no SN-free epochs exist, and treat its catalogue as
-provisional.
+The headline numbers depend critically on **comparing over the same sky area**.
+The SkyMapper cutout covers only **15.9%** of the Y4KCam field (85.2% of each
+difference image is `NO_DATA`), so whole-field source totals are not a valid
+comparison. Restricted to the template footprint:
+
+| within template footprint | SkyMapper | Coadd |
+|---|---:|---:|
+| detections | 3 563 | 2 132 |
+| matched to the other | 1 081 | — |
+| recall of coadd sources | **50.7 %** | — |
+| purity (matched / all) | **30.3 %** | — |
+
+SkyMapper recovers about **half** the coadd's sources in the region it covers,
+while producing roughly as many again that the coadd does not see. Those extras
+are **not random noise** — they recur in a median of 10 of 18 visits, *more*
+repeatably than the coadd's own detections — which points at structure imprinted
+by the single-epoch template rather than transient noise.
+
+**Use `template.type: coadd` when SN-free epochs exist.** SkyMapper is a
+usable-but-shallow fallback whose catalogue needs independent confirmation, and
+whose 16% field coverage is a hard operational limit on this camera.
 
 ## Setup
 
@@ -58,56 +70,117 @@ Ingested to `templates/skymapper/i` as `template_coadd`, tract 444 / patch 156,
 
 ## Results
 
-### Difference-image source recovery
+### Template coverage — read this before any source count
 
-| | SkyMapper | Coadd (validated) |
+The SkyMapper cutout is capped at 0.17° (10.2′) against a ~20′ Y4KCam field.
+Measured on the warped template: **15.9 % of each science image has template
+data; 85.2 % is `NO_DATA`.** Detection correctly respects that mask — **zero**
+SkyMapper detections fall outside the footprint — but it means whole-field
+totals compare different sky areas and must not be used.
+
+### Source recovery, restricted to the template footprint
+
+| | SkyMapper (tuned) | Coadd (validated) |
 |---|---:|---:|
-| Visits with a difference image | **18 / 18** | 18 / 18 |
-| Visits with zero sources | 0 | 0 |
-| **Total DIA sources** | **3 553** | **9 784** |
-| Per-visit min / median / max | 171 / 195 / 228 | 433 / 545 / 624 |
+| detections in footprint | 3 563 | 2 132 |
+| matched within 1″ | 1 081 | — |
+| unmatched | 2 482 | — |
+| **recall of coadd sources** | **50.7 %** | — |
+| **purity** | **30.3 %** | — |
 
-Raw counts alone suggest 36% recovery — **that reading is wrong.** Source
-totals do not establish that the same objects were found. See the cross-match
-below.
+**Registration is not a factor.** Median offset among matched pairs is +0.000″ in
+both RA and Dec (pixel = 0.289″).
 
-### Cross-match against the validated coadd run
+### Are the unmatched detections real?
 
-Matching each SkyMapper detection to the nearest coadd detection on the same
-visit:
+Not settled, but they are **not random noise**. Repeatability across the 18
+visits, matching detections within 1″:
 
-| | |
-|---|---:|
-| SkyMapper detections | 3 553 |
-| …with a coadd counterpart within 1″ | **1 173 (33.0 %)** |
-| …with no counterpart | **2 380 (67.0 %)** |
-| **Coadd sources actually recovered** | **1 173 / 9 784 = 12.0 %** |
+| seen in ≥ N visits | SkyMapper | Coadd |
+|---|---:|---:|
+| ≥ 2 | 64.1 % | 69.1 % |
+| ≥ 10 | **50.1 %** | 42.0 % |
+| median visits per position | **10** | 6 |
 
-**Registration is not the explanation.** Median offset among matched pairs is
-**+0.000″ in RA and +0.000″ in Dec** (Y4KCam pixel = 0.289″). The separation
-distribution is bimodal — p10 = 0.03″, p50 = 9.14″ — and the match fraction
-plateaus with tolerance (27.1 % at 0.5″, 33.0 % at 1″, 41.3 % at 3″), so the
-unmatched detections are not near-misses.
-
-The unmatched 67 % cannot be proven artifact from this test alone, but three
-lines of evidence point there: registration is clean, so they are not displaced
-counterparts; the coadd is the deeper image and should find *more* real sources,
-not fewer; and the plateau rules out a tolerance effect.
+SkyMapper's detections are *more* repeatable than the coadd's. Random noise
+appears in one visit; these persist. That rules out shot noise but does **not**
+distinguish a real variable from structure baked into the single-epoch template,
+which would also imprint identically on every difference image. The latter is
+the more parsimonious explanation for detections the deeper coadd does not see.
 
 ### Forced photometry at the cluster centre
 
 | | SkyMapper | Coadd |
 |---|---:|---:|
-| Measurements | 18 | 18 |
-| Median `diffFlux` | **−29 181** | −3 715 |
-| Fraction negative | **94.4 %** | 61.1 % |
+| Median `diffFlux` | −29 181 | −3 715 |
+| Fraction negative | 94.4 % | 61.1 % |
 
-**Read this as subtraction quality, not transient photometry.** The forced
-position is the NGC2298 core — a crowded, bright region containing no transient
-— so a large negative residual is expected for *both* templates. The
-informative quantity is the ratio: the SkyMapper subtraction leaves a residual
-**7.9× larger** and far more systematically one-signed, consistent with poorer
-PSF matching and a depth mismatch in a crowded field.
+Read as subtraction quality, not transient photometry — the position is the
+crowded cluster core, which contains no transient.
+
+## Does configuration tuning help?
+
+Investigated directly, because the first DIA run turned out to be **misconfigured**.
+
+**Bug 1 — the tuned config was never applied.** `stips dia` did not read
+`configs.dia.subtract_images` from the YAML and exposed no override flag, so the
+run silently used the ctio1m defaults: `mode='convolveTemplate'`,
+`spatialKernelOrder=2`, `nStarPerCell=4`, `sizeCellX/Y=512`. Fixed by adding
+`--subtract-config` / `--detect-config` and honouring the YAML keys.
+
+**Bug 2 — the wrong convolution direction.** Forced `convolveTemplate` on a
+template (1.68″) blurrier than the science (median ~1.40″) makes the kernel
+deconvolve.
+
+With `subtractImages_skymapper.py` actually applied:
+
+| | untuned | tuned |
+|---|---|---|
+| `mode` | `convolveTemplate` | `auto` |
+| exposure convolved | Template ×18 | **Science ×17**, Template ×1 |
+| spatial condition number | 2.41e10 | **7.3e8** (33× better) |
+| kernel sum | 1.072 | 0.918 |
+| recall / purity | 55.0 % / 33.0 % | 50.7 % / 30.3 % |
+
+**The kernel physics improved dramatically; the source yield did not.** `auto`
+correctly flipped to convolving the science, confirming the template really is
+blurrier, and conditioning improved 33×. Recall and purity moved slightly the
+*wrong* way. Kernel conditioning was therefore never the limiting factor.
+
+**Detection thresholds trade purity for recall with no sweet spot** (tuned run,
+within footprint):
+
+| cut | matched | unmatched | purity | recall |
+|---|---:|---:|---:|---:|
+| none | 1 081 | 2 482 | 30.3 % | 50.7 % |
+| SNR ≥ 10 | 427 | 494 | 46.4 % | 20.0 % |
+| SNR ≥ 20 | 298 | 105 | 73.9 % | 14.0 % |
+| not-dipole | 716 | 2 197 | 24.6 % | 33.6 % |
+
+The dipole cut makes purity **worse**: matched detections are dipole-classified
+more often (33.8 %) than unmatched (11.5 %), so the classifier is tracking real
+structure here, not artifacts.
+
+**Conclusion: configuration tuning fixes real defects but does not raise yield.**
+The binding constraint is that the template is a single 100 s exposure.
+
+## The actionable lever: stack multiple SkyMapper frames
+
+The adapter selects the single best-seeing `main` frame. DR4 holds **4 main
+i-band frames** at NGC2298:
+
+| frame | FWHM | ZP | MJD |
+|---|---:|---:|---:|
+| `20160417083802-17` | 1.68″ | 27.95 | 57495.4 |
+| `20160417084203-17` | 1.76″ | 27.94 | 57495.4 |
+| `20191208132400-31` | 2.07″ | 27.89 | 58825.6 |
+| `20191208131957-17` | 2.11″ | 27.88 | 58825.6 |
+
+Stacking all four would improve template SNR by ~**2×** and, more importantly,
+average down the per-frame structure that the repeatability test suggests is
+imprinting on every difference image. Multi-epoch coaddition was explicitly
+scoped **out** of this design; this validation is the evidence that it is the
+change most likely to move the numbers.
 
 ## What contradicted the design's predictions
 
@@ -163,18 +236,19 @@ regression test now pins the rescaling.
 
 ## Recommendation
 
-1. **Keep `template.type: coadd` as the southern default.** It recovers ~8× more
-   real sources and leaves an ~8× smaller systematic residual on the same field.
-2. **`template.type: skymapper` is a plumbing fallback, not a science fallback.**
-   It will get a southern field through the pipeline end-to-end when no SN-free
-   epochs exist to self-coadd, and the difference images are real. But at 12 %
-   recovery with a majority-spurious catalogue, its detections must not be
-   treated as a transient list without independent confirmation.
+1. **Keep `template.type: coadd` as the southern default.** It achieves ~2× the
+   purity over the same sky area and covers the whole field rather than 16 % of it.
+2. **`template.type: skymapper` is a shallow fallback covering ~16 % of a Y4KCam
+   field.** It recovers about half the coadd's sources in that region at ~30 %
+   purity. Usable to get a southern field through the pipeline; its catalogue
+   needs independent confirmation.
 3. **Do not enable it in `auto`.** The current explicit-only policy is correct;
    nothing here justifies loosening it.
-4. **The deeper southern-template question is now urgent, not merely open.**
-   The 12 % recovery figure means SkyMapper does not close the southern gap for
-   fields without SN-free epochs. SkyMapper's ceiling is
+4. **Add multi-frame stacking to the SkyMapper adapter before anything else.**
+   It is the one change the evidence points at (see above). After that, a deep
+   coadd survey (DECam Legacy Surveys DR10, DES DR2) remains the real answer for
+   southern external templates, and the framework makes it one `sources/*.py`
+   file plus a `template_band_maps` entry. SkyMapper's ceiling is
    set by being a single 100 s frame. A deep coadd survey (DECam Legacy Surveys
    DR10, DES DR2) is the natural next adapter, and the framework built here makes
    that one `sources/*.py` file plus a `template_band_maps` entry. Coverage at
