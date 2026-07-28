@@ -25,6 +25,13 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   templates and rerun the DIA that used them. `ingest_exposure_to_butler()` now
   returns a list of data IDs (target patch first) and `ExternalTemplateResult`
   gained a `patches` field.
+- **`stips external-template` never reported which tract/patch it wrote.**
+  `ingest.py` configures `logging` with the default handler, which writes to
+  *stderr*, so under `capture_output=True` every `Data ID:` line lands in
+  `result.stderr` while `result.stdout` is empty — and the parse only looked at
+  stdout. `tract`/`patch` came back `None` on every real run and the CLI silently
+  omitted the line. Both streams are scanned now, which is also what surfaces the
+  new multi-patch `Patches: [...]` summary.
 - **`stips dia` ignored the YAML's `configs.dia.*` overrides.**
   `dia.run()` has accepted `subtract_config_file`/`detect_config_file` since the
   YAML-driven `stips run` path started wiring them from
