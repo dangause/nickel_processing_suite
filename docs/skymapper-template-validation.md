@@ -182,6 +182,62 @@ imprinting on every difference image. Multi-epoch coaddition was explicitly
 scoped **out** of this design; this validation is the evidence that it is the
 change most likely to move the numbers.
 
+## Tile mosaicking — lifting the coverage limit
+
+The 0.17° cap is **per request, not per frame**. Tiles fetched at offset positions
+from the *same* `image=` id share `CRVAL` and the `CD` matrix and differ only in
+`CRPIX` — they are exact sub-arrays of one CCD pixel grid — so they assemble by
+**lossless integer paste**, with all `PV` distortion terms carried over unchanged.
+No reprojection, no interpolation, no PSF or photometric change. (Verified:
+200/200 pixels identical to a direct cutout, WCS round-trip residual 7.3e-10 px.)
+
+The adapter now tiles automatically whenever the requested size exceeds the
+per-request cap.
+
+| | single cutout | **mosaic (0.4°)** |
+|---|---:|---:|
+| assembled size | 10.2′ × 10.2′ | **17.0′ × 25.5′** |
+| science-field coverage | 15.3 % | **39.0 %** |
+| detections | 3 563 | 7 062 |
+| **matched (coadd-confirmed)** | 1 081 | **2 185** |
+| recall | 50.7 % | **52.9 %** |
+| purity | 30.3 % | **30.9 %** |
+
+**2.0× more real sources at equal-or-better recall and purity** — the quality per
+unit area is unchanged; there is simply 2.5× more usable area.
+
+The mosaic is truncated on one axis by the CCD short side (17′), so a 20′ Y4KCam
+field cannot be fully covered from a single CCD. Adjacent CCDs of the same
+exposure would be needed for the remainder; not investigated.
+
+### It trips LSST's bad-subtraction guard, and that guard is misfiring here
+
+Over the larger area the residual-power ratio rises to 6.8–7.5, exceeding
+ctio1m's `badSubtractionRatioThreshold` of 5.0 and killing 15 of 18 visits with
+`BadSubtractionError`. Disabling the guard and measuring directly shows recall and
+purity are **unchanged or marginally better** — the ratio is inflated because it is
+computed over source footprints on a template that is both shallow and only
+partially covering, not because the subtraction degraded.
+`detectAndMeasure_skymapper.py` raises the threshold to 10.0 rather than removing
+the guard, so a genuinely broken subtraction is still caught.
+
+A higher spatial kernel order was tested as an alternative explanation and made
+things slightly worse (16 failures vs 15), ruling out kernel spatial variation.
+
+### What this changes
+
+Earlier drafts of this document called the ~16 % coverage "a hard operational
+limit" and treated it as the decisive argument against SkyMapper. **That was
+wrong** — 16 % was an artifact of issuing a single request, not a property of the
+survey. Coverage is now 39 % using only the public API.
+
+The ANU documentation also states full CCD frames (**38′ × 19′**, 4096 × 2048 px)
+exist and are withheld for bandwidth reasons, with an explicit invitation to ask:
+*"If these would be useful, please contact us and we will consider offering them
+as part of later data releases, or as a bulk download."* Requesting those would
+remove the tiling need entirely. Data Central caps optical cutouts at 600″, the
+same effective 10′ limit, so it is not an alternative route.
+
 ## What contradicted the design's predictions
 
 **The FOV concern did not materialise as a failure.** The design predicted that
@@ -238,14 +294,17 @@ regression test now pins the rescaling.
 
 1. **Keep `template.type: coadd` as the southern default.** It achieves ~2× the
    purity over the same sky area and covers the whole field rather than 16 % of it.
-2. **`template.type: skymapper` is a shallow fallback covering ~16 % of a Y4KCam
-   field.** It recovers about half the coadd's sources in that region at ~30 %
-   purity. Usable to get a southern field through the pipeline; its catalogue
-   needs independent confirmation.
+2. **`template.type: skymapper` is a shallow fallback covering ~39 % of a Y4KCam
+   field with mosaicking enabled** (`template.size: 0.4`). It recovers ~53 % of
+   the coadd's sources in that region at ~31 % purity. Usable to get a southern
+   field through the pipeline; its catalogue needs independent confirmation.
 3. **Do not enable it in `auto`.** The current explicit-only policy is correct;
    nothing here justifies loosening it.
-4. **Add multi-frame stacking to the SkyMapper adapter before anything else.**
-   It is the one change the evidence points at (see above). After that, a deep
+4. **Ask ANU for the full 38'x19' CCD frames** (skymapper@anu.edu.au) — they are
+   withheld only for bandwidth and the team invites requests. That removes the
+   tiling need and the residual coverage gap in one step. Multi-frame stacking
+   remains a distant second: it addresses depth, which is not the binding
+   constraint. After that, a deep
    coadd survey (DECam Legacy Surveys DR10, DES DR2) remains the real answer for
    southern external templates, and the framework makes it one `sources/*.py`
    file plus a `template_band_maps` entry. SkyMapper's ceiling is
