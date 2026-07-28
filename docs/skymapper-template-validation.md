@@ -83,7 +83,9 @@ no PSF-matching kernel candidates (`NoKernelCandidatesError`). In practice all
 pointings evidently sit close enough to the field centre that the template
 covers the science footprint. **This does not generalise** — a campaign with a
 wider dither pattern should still expect the failure, and the warning emitted by
-the adapter remains appropriate.
+the adapter remains appropriate. That warning is driven by the active profile's
+`fov_arcmin` (`20.0` for Y4KCam), passed into `fetch()` by `ingest.py`; a
+profile that does not declare a FOV gets no warning.
 
 **`mode = "auto"` was the right call.** The template's 1.68″ seeing versus CTIO
 science seeing makes the PS1 config's hardcoded `convolveTemplate` unsafe;

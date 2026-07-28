@@ -346,11 +346,27 @@ Each adapter implements the `TemplateSource` protocol
 | `default_zeropoint(header)` | Fallback AB zeropoint when no header card is present | per-filter table | per `image_type` (`main` ≈ 28.75, `short` ≈ 25.4) |
 | `native_fwhm(header)` | Seeing FWHM in arcsec for this specific frame | constant 1.2″ | reads `QAFWHM` from the frame |
 | `fetch(ra, dec, src_band, size_deg, out_dir, **kw)` | Download a cutout; return its `Path` | MAST → fitscut → ps1filenames (3 fallbacks) | SIA `query` → frame selection → `get_image` |
+| `fetch_validates_cutout` | True only when `fetch` itself already ran the coverage/size validators | `True` | `False` |
 
 `fetch` **raises** `TemplateSourceError` rather than returning `None` on
 failure — a falsy return is how a "no usable frames" condition would otherwise
 degrade into an opaque downstream Butler error instead of an actionable
 message.
+
+After `fetch` returns, `ingest.py` validates the file for **every** source
+(`imaging.validate_cutout`): an adapter's byte-count floor only proves the
+response was not an error page, while an edge-trimmed survey frame is a
+perfectly well-formed FITS that misses the target or leaves no DIA overlap
+margin. PS1 sets `fetch_validates_cutout = True` because its per-method checks
+are what decide whether to fall through to the next download method, so it is
+not re-validated. Validation compares against the **post-clamp** size
+(`imaging.effective_cutout_size`), or a source with a service cap would reject
+its own successful fetch.
+
+`ingest.py` also passes the active profile's `fov_arcmin` into `fetch`, which is
+what lets an adapter warn that its cutout cannot cover the science field (the
+`NoKernelCandidatesError` cascade). Profiles that do not declare a FOV pass
+`None` and the warning stays silent.
 
 **Adding a new survey** (e.g. a future DECam Legacy Surveys / DES adapter):
 
@@ -360,9 +376,20 @@ message.
 3. Add a `template_band_maps["<name>"]` entry to any instrument profile that
    should offer it (see `docs/forking-stips.md`).
 
-Nothing else changes — `core.py`, `ingest.py`, the `stips external-template`
-CLI, and `dia.find_template()`'s explicit-collection lookup are all
-source-agnostic.
+Nothing else changes. Everything downstream reads the `SOURCES` registry rather
+than a literal list: `core.py` and `ingest.py` are source-agnostic, the `stips
+external-template` CLI's `--source` choices, `dia.find_template()`'s
+explicit-collection glob list, `run.py`'s `template.type` dispatch, and the set
+of `template.type` values `RunConfig` accepts are all derived from it. (An
+unrecognised `template.type` is rejected when the YAML is parsed, naming the
+valid values, rather than silently building no template and failing every band
+in DIA hours later.)
+
+One deliberate exception: `dia.find_template()`'s `strategy == "auto"` branch
+resolves **PS1 by name** and is not registry-driven. Auto-selecting a template
+shallower and blurrier than the science produces plausible-but-wrong difference
+images, and a future adapter is no safer by default, so a new source is
+reachable only via explicit `--template` / `template.type`. Two tests pin this.
 
 **SkyMapper is deliberately Tier-2 and explicit-only.** Its DR4 cutouts are
 single-epoch (100 s `main` frames only; 5 s `short` frames rejected), capped at

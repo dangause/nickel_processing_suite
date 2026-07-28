@@ -266,6 +266,16 @@ These are the real `InstrumentProfile` fields (from
   needs a colorterm nobody has fit yet. Treat every entry in a
   `template_band_maps` map as a claim that needs its own justification, not a
   name-matching exercise.
+- **`fov_arcmin`** — Approximate science field of view in **arcmin** (the long
+  dimension is fine; this is an order-of-magnitude figure, not geometry). Its
+  only consumer is the external-template coverage warning: a survey cutout
+  narrower than the science field leaves dithered pointings with no PSF-matching
+  kernel candidates (`NoKernelCandidatesError`), and SkyMapper's hard 0.17°
+  (10.2′) cap is under the FOV of most 1-m-class cameras. Nickel declares `6.3`,
+  CTIO 1.0m / Y4KCam `20.0`. Camera geometry is deliberately not used as a
+  substitute (binning and partial illumination make it unreliable). Leave it
+  unset if you have not measured it — the warning then stays silent rather than
+  asserting a field size STIPS guessed.
 - **`fetch_data`** — Optional callable hook: `fetch_data(night, config, *,
   overwrite=False) -> "ok" | "not_found" | "failed"`, used by `stips download`.
   Wire it from a co-located module (Nickel's `profile.py` does `from fetch import
