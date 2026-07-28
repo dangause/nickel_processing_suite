@@ -285,6 +285,59 @@ def fits_to_lsst_exposure(
         return exposure
 
 
+def _rescale_psf_for_target_geometry(
+    source_psf, source_wcs, source_bbox, target_wcs, target_bbox
+):
+    """Rebuild a Gaussian PSF's width for a different pixel grid.
+
+    ``GaussianPsf`` stores its width in PIXELS. Carrying a PSF measured on
+    one pixel grid onto another grid with a different pixel scale, unchanged,
+    silently misrepresents the seeing by the ratio of the two scales (e.g.
+    PS1's ~0.25"/px -> the skymap patch's ~0.29"/px understates FWHM by
+    ~13%; SkyMapper's ~0.50"/px -> the same patch scale understates it by
+    ~42%, i.e. the reprojected FWHM reads ~0.58x the true value).
+
+    Parameters
+    ----------
+    source_psf : lsst.afw.detection.Psf
+        The PSF measured on the source (survey) pixel grid.
+    source_wcs, target_wcs : lsst.afw.geom.SkyWcs
+        WCS of the source exposure and of the target (patch) geometry.
+    source_bbox, target_bbox : lsst.geom.Box2I
+        Bounding boxes of the source exposure and of the target geometry.
+
+    Returns
+    -------
+    lsst.afw.detection.GaussianPsf or None
+        A new PSF with sigma rescaled to the target pixel grid, or ``None``
+        if a pixel scale could not be determined (e.g. missing WCS) -- the
+        caller should fall back to carrying the original PSF unchanged and
+        log a warning that the seeing may be misrepresented.
+    """
+    if source_wcs is None or target_wcs is None:
+        return None
+
+    try:
+        source_center = geom.Point2D(source_bbox.getCenterX(), source_bbox.getCenterY())
+        target_center = geom.Point2D(target_bbox.getCenterX(), target_bbox.getCenterY())
+        source_scale = source_wcs.getPixelScale(source_center).asArcseconds()
+        target_scale = target_wcs.getPixelScale(target_center).asArcseconds()
+        if not (source_scale > 0 and target_scale > 0):
+            return None
+
+        sigma_source_px = source_psf.computeShape(source_center).getDeterminantRadius()
+        sigma_target_px = sigma_source_px * (source_scale / target_scale)
+        if not (np.isfinite(sigma_target_px) and sigma_target_px > 0):
+            return None
+
+        # 3-sigma kernel on each side, same convention as degrade_exposure_psf.
+        kernel_size = max(21, int(sigma_target_px * 6) | 1)
+        return afwDetection.GaussianPsf(kernel_size, kernel_size, sigma_target_px)
+    except Exception as e:  # noqa: BLE001
+        log.warning("Could not rescale PSF for target pixel grid: %s", e)
+        return None
+
+
 def reproject_to_patch(exposure, patch_info):
     """
     Reproject exposure to match patch WCS and bounding box.
@@ -320,13 +373,51 @@ def reproject_to_patch(exposure, patch_info):
     reprojected.setWcs(patch_wcs)
     reprojected.setFilter(exposure.getFilter())
     reprojected.setPhotoCalib(exposure.getPhotoCalib())
-    # Preserve PSF if present (we add a synthetic PSF earlier)
+
+    # Carry provenance metadata (TEMPLATE_SOURCE / TEMPLATE_ZEROPOINT /
+    # TEMPLATE_FWHM_ARCSEC / TEMPLATE_ORIGIN_FILE, set by
+    # fits_to_lsst_exposure) onto the reprojected exposure -- it is otherwise
+    # silently dropped since we construct a fresh ExposureF above.
     try:
-        if exposure.getPsf() is not None:
-            reprojected.setPsf(exposure.getPsf())
-            log.info("  Carried PSF onto reprojected exposure")
+        source_metadata = exposure.getMetadata()
+        reprojected.getInfo().setMetadata(source_metadata.deepCopy())
+        log.info(
+            "  Carried source metadata (TEMPLATE_* provenance) onto reprojected exposure"
+        )
     except Exception as e:
-        log.warning(f"  Could not copy PSF to reprojected exposure: {e}")
+        log.warning(f"  Could not copy metadata to reprojected exposure: {e}")
+
+    # Preserve PSF if present (we add a synthetic PSF earlier), rescaled to
+    # the target pixel grid: GaussianPsf stores its width in PIXELS, and the
+    # patch grid generally has a different pixel scale than the source
+    # survey frame, so carrying sigma_px over unchanged would misrepresent
+    # the angular FWHM by the ratio of the two scales.
+    try:
+        source_psf = exposure.getPsf()
+    except Exception as e:
+        log.warning(f"  Could not read PSF from source exposure: {e}")
+        source_psf = None
+
+    if source_psf is not None:
+        rescaled_psf = _rescale_psf_for_target_geometry(
+            source_psf,
+            exposure.getWcs(),
+            exposure.getBBox(),
+            patch_wcs,
+            patch_bbox,
+        )
+        if rescaled_psf is not None:
+            reprojected.setPsf(rescaled_psf)
+            log.info("  Rescaled PSF onto reprojected exposure's pixel grid")
+        else:
+            # Fallback: carry the PSF over unchanged, but say so loudly --
+            # the seeing may now be misrepresented by the scale ratio.
+            reprojected.setPsf(source_psf)
+            log.warning(
+                "  Could not determine source/target pixel scales; carrying "
+                "PSF onto reprojected exposure UNCHANGED (sigma in pixels) -- "
+                "seeing will be misrepresented if pixel scales differ"
+            )
 
     # Warp input exposure onto patch geometry
     warping_control = WarpingControl("lanczos4")
