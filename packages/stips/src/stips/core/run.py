@@ -127,6 +127,34 @@ class CoaddConfigs:
     select_deep_coadd_visits: str | None = None
 
 
+#: ``template.type`` values that are not an external-survey adapter name.
+INTERNAL_TEMPLATE_TYPES = ("coadd", "auto")
+
+
+def valid_template_types() -> list[str]:
+    """Every accepted ``template.type``: the internal ones plus every adapter."""
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    return [*INTERNAL_TEMPLATE_TYPES, *sorted(SOURCES)]
+
+
+def validate_template_type(template_type: str) -> str:
+    """Reject an unrecognised ``template.type`` as early as it can be seen.
+
+    The dispatch is an if/elif chain with no else, so a typo
+    (``type: skymappper``) used to ingest nothing, and then every band failed
+    DIA with "no template available" -- after the run had already spent hours on
+    calibs and science. Failing here costs nothing and names the valid values.
+    """
+    valid = valid_template_types()
+    if template_type not in valid:
+        raise ValueError(
+            f"Unknown template.type {template_type!r}; valid values are: "
+            f"{', '.join(valid)}"
+        )
+    return template_type
+
+
 @dataclass
 class RunConfig:
     """Configuration parsed from YAML."""
@@ -200,6 +228,9 @@ class RunConfig:
 
     # HPC container options
     container_image: str | None = None  # Path to Singularity/Apptainer SIF image
+
+    def __post_init__(self) -> None:
+        validate_template_type(self.template_type)
 
     @classmethod
     def from_yaml(cls, path: Path) -> RunConfig:
@@ -506,6 +537,49 @@ def _run_external_templates(
 def _run_ps1_templates(run_cfg, config, result, dry_run, bands=None) -> None:
     """Back-compat wrapper; PS1 is one external-template source among several."""
     _run_external_templates(run_cfg, config, result, dry_run, source="ps1", bands=bands)
+
+
+def _run_template_step(
+    run_cfg: RunConfig,
+    config: Config,
+    result: RunResult,
+    science_cfg,
+    dry_run: bool,
+    *,
+    executor=None,
+):
+    """Build the templates ``run_cfg.template_type`` asks for.
+
+    Every registered external-survey adapter is dispatchable by name, so adding
+    a source needs no edit here (``docs/architecture.md``'s extension contract).
+    ``RunConfig`` has already rejected any other value, so there is no silent
+    fall-through: an unrecognised ``template.type`` never reaches this point.
+
+    Returns a failing ``RunResult`` to abort the run, or None to continue.
+    """
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    if run_cfg.template_type in SOURCES:
+        _run_external_templates(
+            run_cfg, config, result, dry_run, source=run_cfg.template_type
+        )
+    elif run_cfg.template_type == "coadd":
+        early_exit = _run_coadd_templates(
+            run_cfg, config, result, science_cfg, dry_run, executor=executor
+        )
+        if early_exit is not None:
+            log.error(f"Coadd template build failed: {early_exit.error}")
+            return early_exit
+    elif run_cfg.template_type == "auto":
+        early_exit = _run_auto_templates(
+            run_cfg, config, result, science_cfg, dry_run, executor=executor
+        )
+        if early_exit is not None:
+            log.error(f"Auto template build failed: {early_exit.error}")
+            return early_exit
+
+    _log_template_summary(run_cfg, result)
+    return None
 
 
 def _build_coadd_config_files(run_cfg: "RunConfig", config: "Config") -> list[str]:
@@ -1664,28 +1738,11 @@ def run(
         return early_exit
 
     # Step 1: Templates per band
-    if run_cfg.template_type == "ps1":
-        _run_ps1_templates(run_cfg, config, result, dry_run)
-        _log_template_summary(run_cfg, result)
-    elif run_cfg.template_type == "skymapper":
-        _run_external_templates(run_cfg, config, result, dry_run, source="skymapper")
-        _log_template_summary(run_cfg, result)
-    elif run_cfg.template_type == "coadd":
-        early_exit = _run_coadd_templates(
-            run_cfg, config, result, science_cfg, dry_run, executor=executor
-        )
-        if early_exit is not None:
-            log.error(f"Coadd template build failed: {early_exit.error}")
-            return early_exit
-        _log_template_summary(run_cfg, result)
-    elif run_cfg.template_type == "auto":
-        early_exit = _run_auto_templates(
-            run_cfg, config, result, science_cfg, dry_run, executor=executor
-        )
-        if early_exit is not None:
-            log.error(f"Auto template build failed: {early_exit.error}")
-            return early_exit
-        _log_template_summary(run_cfg, result)
+    early_exit = _run_template_step(
+        run_cfg, config, result, science_cfg, dry_run, executor=executor
+    )
+    if early_exit is not None:
+        return early_exit
 
     # Step 2: Calibrations per night (always local — BPS overhead too high
     # for small calib pipelines, and calib qgraphs lack --output-run)

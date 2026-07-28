@@ -152,3 +152,27 @@ def test_cli_ps1_template_still_registered():
 
     result = CliRunner().invoke(cli, ["ps1-template", "--help"])
     assert result.exit_code == 0
+
+
+def _reload_cli():
+    import importlib
+
+    import stips.cli as cli_mod
+
+    return importlib.reload(cli_mod)
+
+
+def test_cli_source_choices_come_from_the_registry(monkeypatch):
+    """A hardcoded click.Choice made the documented one-file extension false."""
+    from stips.pipeline_tools.external_template import sources as src_mod
+
+    monkeypatch.setitem(src_mod.SOURCES, "decals", object())
+    try:
+        cli = _reload_cli()
+        params = {p.name: p for p in cli.cli.commands["external-template"].params}
+        choices = params["source"].type.choices
+        assert "decals" in choices
+        assert {"ps1", "skymapper"} <= set(choices)
+    finally:
+        monkeypatch.undo()
+        _reload_cli()

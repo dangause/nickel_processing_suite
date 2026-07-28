@@ -911,10 +911,23 @@ def ps1_template(
 # =============================================================================
 
 
+def _external_source_choices() -> list[str]:
+    """Valid ``--source`` values: every registered external-survey adapter.
+
+    Driven by the ``SOURCES`` registry rather than a literal so a new adapter is
+    one ``sources/*.py`` file, as ``docs/architecture.md`` promises. Evaluated
+    once at import (click builds the Choice at decoration time); the registry is
+    populated at import of ``sources/__init__``, so nothing is missed.
+    """
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    return sorted(SOURCES)
+
+
 @cli.command("external-template")
 @click.option(
     "--source",
-    type=click.Choice(["ps1", "skymapper"]),
+    type=click.Choice(_external_source_choices()),
     required=True,
     help="Survey to fetch the template from",
 )

@@ -353,3 +353,68 @@ class TestRunConfigCoaddSelectConfigs:
         cfg = RunConfig.from_yaml(sn_yaml)
         assert cfg.coadd_configs.select_template_coadd_visits is None
         assert cfg.coadd_configs.select_deep_coadd_visits is None
+
+
+# ---------------------------------------------------------------------------
+# template.type validation (fail fast, not silently)
+# ---------------------------------------------------------------------------
+
+
+def _write_cfg(tmp_path, template_type):
+    cfg = {
+        "object": "NGC2298",
+        "ra": 102.246542,
+        "dec": -36.005333,
+        "bands": ["i"],
+        "template": {"type": template_type},
+        "science": {"nights": [20061216]},
+    }
+    path = tmp_path / f"{template_type}.yaml"
+    with open(path, "w") as f:
+        yaml.dump(cfg, f)
+    return path
+
+
+def test_unknown_template_type_is_rejected_at_parse_time(tmp_path):
+    """A typo used to no-op: nothing was ingested, then every band failed DIA
+    with "no template available" -- after calibs and science had already run."""
+    from stips.core.run import RunConfig
+
+    with pytest.raises(ValueError) as exc:
+        RunConfig.from_yaml(_write_cfg(tmp_path, "skymappper"))
+    message = str(exc.value)
+    assert "skymappper" in message
+    for valid in ("coadd", "auto", "ps1", "skymapper"):
+        assert valid in message
+
+
+@pytest.mark.parametrize("template_type", ["ps1", "skymapper", "coadd", "auto"])
+def test_known_template_types_are_accepted(tmp_path, template_type):
+    from stips.core.run import RunConfig
+
+    assert RunConfig.from_yaml(_write_cfg(tmp_path, template_type)).template_type == (
+        template_type
+    )
+
+
+def test_template_type_validation_covers_direct_construction():
+    """Not only from_yaml -- a RunConfig built in code gets the same guard."""
+    from stips.core.run import RunConfig
+
+    with pytest.raises(ValueError, match="nosuchsurvey"):
+        RunConfig(
+            object_name="x",
+            ra=1.0,
+            dec=2.0,
+            bands=["i"],
+            template_type="nosuchsurvey",
+        )
+
+
+def test_a_newly_registered_source_becomes_a_valid_template_type(tmp_path, monkeypatch):
+    """The valid set is the SOURCES registry, not a hardcoded list."""
+    from stips.core.run import RunConfig
+    from stips.pipeline_tools.external_template import sources as src_mod
+
+    monkeypatch.setitem(src_mod.SOURCES, "decals", object())
+    assert RunConfig.from_yaml(_write_cfg(tmp_path, "decals")).template_type == "decals"

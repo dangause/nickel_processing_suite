@@ -343,3 +343,108 @@ def test_run_skips_bands_without_skymapper_mapping(monkeypatch):
     )
     assert "v" not in result.template_collections
     assert "i" in result.template_collections
+
+
+# ---------------------------------------------------------------------------
+# The extension contract: adding a source must not need framework edits
+# ---------------------------------------------------------------------------
+
+
+def test_legacy_discovery_queries_every_registered_source(monkeypatch):
+    """docs/architecture.md promises dia.find_template()'s explicit-collection
+    lookup is source-agnostic; a literal glob list made that false."""
+    from stips.pipeline_tools.external_template import sources as src_mod
+
+    monkeypatch.setitem(src_mod.SOURCES, "decals", object())
+    seen = []
+    monkeypatch.setattr(
+        dia.butler_query,
+        "list_collections",
+        lambda config, pattern, prefix=None: seen.append(pattern) or [],
+    )
+    dia.find_template(_config(NICKEL_MAP), band="i")
+    assert "templates/decals/*" in seen
+    assert "templates/ps1/*" in seen
+    assert "templates/skymapper/*" in seen
+
+
+def test_auto_still_ignores_every_external_source_but_ps1(monkeypatch):
+    """Registry-driven discovery must not leak into the auto branch."""
+    from stips.pipeline_tools.external_template import sources as src_mod
+
+    monkeypatch.setitem(src_mod.SOURCES, "decals", object())
+    monkeypatch.setattr(
+        dia.butler_query, "collection_exists", lambda config, name: False
+    )
+    seen = []
+    monkeypatch.setattr(
+        dia.butler_query,
+        "list_collections",
+        lambda config, pattern, prefix=None: seen.append(pattern) or [],
+    )
+    assert dia.find_template(_config(NICKEL_MAP), band="i", strategy="auto") is None
+    assert seen == ["templates/deep/*/*"]
+
+
+def _template_step(monkeypatch, template_type, band_maps):
+    """Drive run's template dispatch with every builder stubbed out."""
+    calls = []
+    monkeypatch.setattr(
+        run,
+        "_run_external_templates",
+        lambda run_cfg, config, result, dry_run, *, source, bands=None: calls.append(
+            ("external", source)
+        ),
+    )
+    monkeypatch.setattr(
+        run,
+        "_run_coadd_templates",
+        lambda *a, **k: calls.append(("coadd", None)),
+    )
+    monkeypatch.setattr(
+        run,
+        "_run_auto_templates",
+        lambda *a, **k: calls.append(("auto", None)),
+    )
+    monkeypatch.setattr(run, "_log_template_summary", lambda *a, **k: None)
+
+    run_cfg = run.RunConfig(
+        object_name="x",
+        ra=1.0,
+        dec=2.0,
+        bands=["i"],
+        template_type=template_type,
+    )
+    out = run._run_template_step(
+        run_cfg,
+        config=_config(band_maps),
+        result=mock.Mock(),
+        science_cfg=mock.Mock(),
+        dry_run=True,
+        executor=None,
+    )
+    return out, calls
+
+
+def test_template_step_dispatches_a_newly_registered_source(monkeypatch):
+    """`elif template_type == "skymapper"` had to be edited per source."""
+    from stips.pipeline_tools.external_template import sources as src_mod
+
+    monkeypatch.setitem(src_mod.SOURCES, "decals", object())
+    out, calls = _template_step(monkeypatch, "decals", {"decals": {"i": "i"}})
+    assert out is None
+    assert calls == [("external", "decals")]
+
+
+def test_template_step_still_dispatches_ps1_and_skymapper(monkeypatch):
+    _, ps1_calls = _template_step(monkeypatch, "ps1", NICKEL_MAP)
+    assert ps1_calls == [("external", "ps1")]
+    _, sm_calls = _template_step(monkeypatch, "skymapper", {"skymapper": {"i": "i"}})
+    assert sm_calls == [("external", "skymapper")]
+
+
+def test_template_step_still_routes_coadd_and_auto(monkeypatch):
+    _, coadd_calls = _template_step(monkeypatch, "coadd", NICKEL_MAP)
+    assert coadd_calls == [("coadd", None)]
+    _, auto_calls = _template_step(monkeypatch, "auto", NICKEL_MAP)
+    assert auto_calls == [("auto", None)]
