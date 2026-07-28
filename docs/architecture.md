@@ -397,7 +397,10 @@ single-epoch (100 s `main` frames only; 5 s `short` frames rejected), capped at
 the science (`subtractImages_skymapper.py` uses `mode = "auto"` rather than the
 PS1 config's hardcoded `convolveTemplate`). `template.type: auto` never selects
 it — a fork must set `template.type: skymapper` explicitly, and only after
-confirming no SN-free epochs exist for a same-instrument coadd. See the
+confirming no SN-free epochs exist for a same-instrument coadd. Validation on
+NGC2298 measured **12% source recovery with 67% of its detections unmatched**
+against the coadd run, so treat it as a plumbing fallback rather than a science
+one (`docs/skymapper-template-validation.md`). See the
 "Southern fields have no PS1 coverage" gotcha in `CLAUDE.md` for the full
 verified-limits list.
 

@@ -496,13 +496,23 @@ For **templates**, southern fields have two options, in order of preference:
    - the DR4 SIA serves **single-epoch frames, not stacks** (only 100 s `main`
      frames are usable; 5 s `short` frames are rejected)
    - cutouts are **hard-capped at 0.17° (10.2′)**, smaller than the Y4KCam
-     ~20′ FOV — dithered pointings will hit `NoKernelCandidatesError`
+     ~20′ FOV — widely dithered pointings risk `NoKernelCandidatesError` (this
+     did NOT occur on NGC2298, whose pointings sit near the field centre)
    - main-frame seeing is ~1.8–2.3″, i.e. **not sharper than the science**, so
      `subtractImages_skymapper.py` does not assume `convolveTemplate`
    - **SkyMapper `v` is a ~384 nm violet filter, NOT Johnson V (~551 nm).** Only
      `r` and `i` are mapped for Y4KCam; see `template_band_maps` in the profile.
 
    SkyMapper is **explicit-only** — `template.type: auto` never selects it.
+
+   **Measured on NGC2298 (see `docs/skymapper-template-validation.md`): it is a
+   plumbing fallback, not a science fallback.** Against the validated coadd run
+   on the same night, SkyMapper recovered **12% of the difference-image sources**
+   (1 173 / 9 784) and **67% of its own detections had no coadd counterpart**.
+   Registration was excellent (0.000″ systematic offset), so this is a depth and
+   PSF-matching limit, not an astrometry problem. Use it to get a southern field
+   through the pipeline end-to-end; do not treat its catalogue as a transient
+   list without independent confirmation.
 
 ### Coordinate precision for forced photometry
 Target RA/Dec must use full TNS precision (sexagesimal → decimal, 6+ decimal
