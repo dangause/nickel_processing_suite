@@ -248,8 +248,19 @@ class SkyMapperSource:
             mjd_end=mjd_end,
         )
 
+        try:
+            image_id = frame["unique_image_id"]
+        except KeyError:
+            # ingest.py catches TemplateSourceError only; a bare KeyError would
+            # escape as an unhandled traceback rather than an actionable message.
+            raise TemplateSourceError(
+                "SkyMapper SIA row has no 'unique_image_id' column, so the "
+                "frame cannot be downloaded. Columns present: "
+                f"{', '.join(sorted(frame)) or 'none'}."
+            ) from None
+
         image_params = {
-            "image": frame["unique_image_id"],
+            "image": image_id,
             "format": "fits",
             "pos": f"{ra},{dec}",
             "size": f"{size_deg:g},{size_deg:g}",
@@ -259,20 +270,19 @@ class SkyMapperSource:
             raise TemplateSourceError(
                 f"SkyMapper image download failed with HTTP "
                 f"{image_response.status_code} for frame "
-                f"{frame['unique_image_id']}"
+                f"{image_id}"
             )
         if len(image_response.content) < 10000:
             raise TemplateSourceError(
                 f"SkyMapper returned a response that is too small to be a FITS "
                 f"cutout ({len(image_response.content)} bytes) for frame "
-                f"{frame['unique_image_id']}"
+                f"{image_id}"
             )
 
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         out_file = out_dir / (
-            f"skymapper_{src_band}_ra{ra:.4f}_dec{dec:.4f}_"
-            f"{frame['unique_image_id']}.fits"
+            f"skymapper_{src_band}_ra{ra:.4f}_dec{dec:.4f}_" f"{image_id}.fits"
         )
         out_file.write_bytes(image_response.content)
         log.info(

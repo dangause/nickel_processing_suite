@@ -42,44 +42,6 @@ from .base import TemplateSourceError
 log = logging.getLogger(__name__)
 
 
-def _resolve_ps1_band(local_band: str) -> str | None:
-    """Resolve the PS1 band to download for a LOCAL science band.
-
-    The band->template policy lives in the active instrument profile's
-    ``ps1_band_map`` (LOCAL band -> PS1 band); this replaces the historical
-    hardcoded PS1->Nickel table so a fork expresses its own filter policy in the
-    profile instead of editing the framework. This tool runs in-stack and
-    standalone, so it resolves the profile at runtime via the same
-    ``load_active_profile`` path used elsewhere in this module.
-
-    Returns the PS1 band name, or None if ``local_band`` is not PS1-eligible for
-    the active profile. If the profile cannot be loaded at all (e.g.
-    INSTRUMENT_DIR unset), falls back to an identity mapping (PS1 band == local
-    band) to preserve the tool's historical standalone behavior.
-    """
-    try:
-        from stips.core.config import load_active_profile
-
-        prof = load_active_profile()
-        band_map = dict(getattr(prof, "ps1_band_map", None) or {})
-    except Exception as e:
-        log.warning(
-            "Could not load instrument profile (%s); assuming PS1 band == "
-            "local band %r",
-            e,
-            local_band,
-        )
-        return local_band
-    if local_band in band_map:
-        return band_map[local_band]
-    log.error(
-        "Band %r is not PS1-eligible for the active instrument; eligible: %s",
-        local_band,
-        ", ".join(sorted(band_map)) or "(none configured)",
-    )
-    return None
-
-
 # PS1 zeropoints (AB mag for 1 DN/sec)
 # From PS1 DR2: https://outerspace.stsci.edu/display/PANSTARRS/PS1+Stack+images
 # These are typical values; actual zeropoints are in FITS headers (FPA.ZP or ZPT keywords)
@@ -574,7 +536,6 @@ __all__ = [
     "PS1_ZEROPOINTS",
     "PS1Source",
     "TemplateSourceError",
-    "_resolve_ps1_band",
     "collect_ps1_metadata",
     "download_ps1_cutout",
     "download_ps1_via_fitscut",

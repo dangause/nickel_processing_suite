@@ -430,3 +430,14 @@ def test_fetch_passes_nondefault_timeout_to_both_requests(tmp_path):
     assert len(session.calls) == 2
     for _, _, timeout in session.calls:
         assert timeout == 42
+
+
+def test_fetch_raises_template_source_error_on_malformed_row(tmp_path):
+    """A row with no unique_image_id must not escape as a bare KeyError:
+    ingest.py catches TemplateSourceError only."""
+    csv_without_id = SIA_CSV.replace("unique_image_id", "not_the_id_column")
+    session = _FakeSession([_FakeResponse(text=csv_without_id)])
+    with pytest.raises(sm.TemplateSourceError, match="unique_image_id"):
+        sm.SkyMapperSource().fetch(
+            102.2475, -36.0053, "r", 0.15, tmp_path, session=session
+        )

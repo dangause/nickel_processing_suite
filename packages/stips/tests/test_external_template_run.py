@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 
+import pytest
 from stips.core import external_template, ps1_template
 
 
@@ -176,3 +177,29 @@ def test_cli_source_choices_come_from_the_registry(monkeypatch):
     finally:
         monkeypatch.undo()
         _reload_cli()
+
+
+def test_result_dataclass_is_keyword_only():
+    """`source` was inserted between `success` and `band`, so the legacy
+    positional PS1TemplateResult(True, "r", "templates/ps1/r", 1825) --
+    (success, band, collection, tract) -- silently rebound every field one
+    place to the right for an out-of-tree caller, with no error at all."""
+    with pytest.raises(TypeError):
+        ps1_template.PS1TemplateResult(True, "r", "templates/ps1/r", 1825)
+
+
+def test_result_still_constructs_by_keyword():
+    result = external_template.ExternalTemplateResult(
+        success=True, source="ps1", band="r", collection="templates/ps1/r"
+    )
+    assert (result.source, result.band) == ("ps1", "r")
+
+
+def test_default_collection_uses_the_shared_builder(monkeypatch):
+    from stips.collections import template_external
+
+    monkeypatch.setattr(external_template, "check_exists", lambda *a, **k: True)
+    result = external_template.run(
+        "skymapper", 1.0, 2.0, "i", _config({"skymapper": {"i": "i"}})
+    )
+    assert result.collection == template_external("skymapper", "i")

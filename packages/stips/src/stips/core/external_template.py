@@ -16,6 +16,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from stips.collections import template_external
 from stips.core.pipeline import template_band_map
 from stips.core.stack import run_with_stack
 from stips.pipeline_tools.external_template.sources import (
@@ -29,9 +30,16 @@ if TYPE_CHECKING:
     from stips.core.config import Config
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ExternalTemplateResult:
-    """Result of an external-template download+ingest run."""
+    """Result of an external-template download+ingest run.
+
+    Keyword-only on purpose. ``PS1TemplateResult`` is aliased to this dataclass
+    for the benefit of unknown out-of-tree callers, and ``source`` was inserted
+    between ``success`` and ``band`` — so a legacy positional
+    ``PS1TemplateResult(True, "r", "templates/ps1/r", 1825)`` would rebind every
+    field one place to the right without raising anything.
+    """
 
     success: bool
     source: str
@@ -97,7 +105,7 @@ def run(
             success=False,
             source=source,
             band=band,
-            collection=collection or f"templates/{source}/{band}",
+            collection=collection or template_external(source, band),
             error=str(e),
         )
 
@@ -108,7 +116,7 @@ def run(
             success=False,
             source=source,
             band=band,
-            collection=collection or f"templates/{source}/{band}",
+            collection=collection or template_external(source, band),
             error=(
                 f"{source} templates only available for bands: {eligible}; "
                 f"got {band!r}"
@@ -117,7 +125,7 @@ def run(
     source_band = band_map[band]
 
     if collection is None:
-        collection = f"templates/{source}/{band}"
+        collection = template_external(source, band)
 
     # Skip-if-exists policy lives here (single source of truth) rather than in
     # each caller: unless overwrite is requested, an already-ingested template
@@ -255,7 +263,7 @@ def check_exists(
         True if template exists
     """
     if collection is None:
-        collection = f"templates/{source}/{band}"
+        collection = template_external(source, band)
 
     args = [
         "butler",

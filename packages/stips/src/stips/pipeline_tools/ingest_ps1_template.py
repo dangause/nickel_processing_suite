@@ -35,7 +35,6 @@ from stips.pipeline_tools.external_template.ingest import main  # noqa: F401
 from stips.pipeline_tools.external_template.sources import get_source
 from stips.pipeline_tools.external_template.sources.ps1 import (  # noqa: F401
     PS1_ZEROPOINTS,
-    _resolve_ps1_band,
     collect_ps1_metadata,
     download_ps1_cutout,
     download_ps1_via_fitscut,

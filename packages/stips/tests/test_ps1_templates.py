@@ -218,31 +218,61 @@ class TestPS1Conversion:
 
 
 class TestBandMapping:
-    """Local-band -> PS1-band resolution is now profile-driven (F-011)."""
+    """Local-band -> PS1-band resolution is profile-driven (F-011).
 
-    def test_resolve_uses_profile_map(self, ps1_ingestion_module, monkeypatch):
-        """_resolve_ps1_band reads the active profile's ps1_band_map."""
+    Exercised through the PRODUCTION path -- ``ingest._resolve_source_band()``
+    -> ``PS1Source.band_map()`` -> ``core.pipeline.template_band_map()`` -- and
+    not a PS1-only duplicate, which is how the duplicate came to read
+    ``ps1_band_map`` directly and ignore ``template_band_maps`` entirely.
+    """
+
+    @staticmethod
+    def _resolve(local_band):
+        from stips.pipeline_tools.external_template.ingest import _resolve_source_band
+        from stips.pipeline_tools.external_template.sources import get_source
+
+        return _resolve_source_band(get_source("ps1"), local_band)
+
+    @staticmethod
+    def _use_profile(monkeypatch, **attrs):
         import stips.core.config as cfg
 
-        class _Prof:
-            ps1_band_map = {"r": "r", "i": "i"}
+        prof = type(
+            "_Prof", (), {"ps1_band_map": {}, "template_band_maps": {}, **attrs}
+        )
+        monkeypatch.setattr(cfg, "load_active_profile", lambda *a, **k: prof())
 
-        monkeypatch.setattr(cfg, "load_active_profile", lambda *a, **k: _Prof())
+    def test_resolve_uses_profile_map(self, ps1_ingestion_module, monkeypatch):
+        """The legacy ps1_band_map still drives PS1 when no explicit entry."""
+        self._use_profile(monkeypatch, ps1_band_map={"r": "r", "i": "i"})
 
-        assert ps1_ingestion_module._resolve_ps1_band("r") == "r"
-        assert ps1_ingestion_module._resolve_ps1_band("i") == "i"
+        assert self._resolve("r") == "r"
+        assert self._resolve("i") == "i"
         # A band not in the map is not PS1-eligible.
-        assert ps1_ingestion_module._resolve_ps1_band("v") is None
+        assert self._resolve("v") is None
+
+    def test_template_band_maps_takes_precedence_for_ps1(
+        self, ps1_ingestion_module, monkeypatch
+    ):
+        """An explicit template_band_maps["ps1"] entry wins over the legacy map.
+
+        ps1_band_map stays dual-purpose (it also builds the PS1 refcat
+        filterMap via STIPS_PS1_BAND_MAP), so a profile must be able to state a
+        different TEMPLATE policy without disturbing refcats.
+        """
+        self._use_profile(
+            monkeypatch,
+            ps1_band_map={"r": "r"},
+            template_band_maps={"ps1": {"i": "z"}},
+        )
+
+        assert self._resolve("i") == "z"
+        assert self._resolve("r") is None
 
     def test_resolve_new_capability_g(self, ps1_ingestion_module, monkeypatch):
         """A Sloan-style profile makes g PS1-eligible without framework edits."""
-        import stips.core.config as cfg
-
-        class _Prof:
-            ps1_band_map = {"g": "g"}
-
-        monkeypatch.setattr(cfg, "load_active_profile", lambda *a, **k: _Prof())
-        assert ps1_ingestion_module._resolve_ps1_band("g") == "g"
+        self._use_profile(monkeypatch, ps1_band_map={"g": "g"})
+        assert self._resolve("g") == "g"
 
     def test_resolve_identity_when_no_profile(self, ps1_ingestion_module, monkeypatch):
         """Without a loadable profile, fall back to identity (parity)."""
@@ -252,7 +282,7 @@ class TestBandMapping:
             raise RuntimeError("INSTRUMENT_DIR not set")
 
         monkeypatch.setattr(cfg, "load_active_profile", _boom)
-        assert ps1_ingestion_module._resolve_ps1_band("r") == "r"
+        assert self._resolve("r") == "r"
 
 
 class TestMetadataTracking:
