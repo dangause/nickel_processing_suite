@@ -418,3 +418,33 @@ def test_a_newly_registered_source_becomes_a_valid_template_type(tmp_path, monke
 
     monkeypatch.setitem(src_mod.SOURCES, "decals", object())
     assert RunConfig.from_yaml(_write_cfg(tmp_path, "decals")).template_type == "decals"
+
+
+def test_template_type_none_is_a_supported_no_template_run(tmp_path):
+    """`type: none` is an in-use idiom for calibs+science / transit runs with no
+    DIA (scripts/config/hd189733, scripts/config/extended_objects)."""
+    from stips.core.run import RunConfig
+
+    assert RunConfig.from_yaml(_write_cfg(tmp_path, "none")).template_type == "none"
+
+
+def test_every_shipped_config_declares_a_valid_template_type():
+    """Guards the validation against rejecting a config we actually ship."""
+    from pathlib import Path
+
+    from stips.core.run import valid_template_types
+
+    root = Path(__file__).resolve().parents[3] / "scripts" / "config"
+    valid = set(valid_template_types())
+    seen = 0
+    for path in sorted(root.rglob("*.yaml")):
+        with open(path) as f:
+            data = yaml.safe_load(f) or {}
+        if not isinstance(data, dict) or "template" not in data:
+            continue
+        declared = (data.get("template") or {}).get("type")
+        if declared is None:
+            continue
+        seen += 1
+        assert declared in valid, f"{path} declares template.type: {declared}"
+    assert seen > 5, f"only {seen} configs inspected; did the path move?"

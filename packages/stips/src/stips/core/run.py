@@ -128,7 +128,9 @@ class CoaddConfigs:
 
 
 #: ``template.type`` values that are not an external-survey adapter name.
-INTERNAL_TEMPLATE_TYPES = ("coadd", "auto")
+#: ``none`` skips the template step entirely — the idiom for calibs+science or
+#: transit runs that do no DIA (scripts/config/hd189733, extended_objects).
+INTERNAL_TEMPLATE_TYPES = ("coadd", "auto", "none")
 
 
 def valid_template_types() -> list[str]:
@@ -558,6 +560,11 @@ def _run_template_step(
     Returns a failing ``RunResult`` to abort the run, or None to continue.
     """
     from stips.pipeline_tools.external_template.sources import SOURCES
+
+    if run_cfg.template_type == "none":
+        # No template step at all; skip the summary too, or every band would be
+        # reported as a template failure.
+        return None
 
     if run_cfg.template_type in SOURCES:
         _run_external_templates(

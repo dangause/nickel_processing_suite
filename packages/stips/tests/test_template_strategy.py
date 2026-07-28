@@ -448,3 +448,31 @@ def test_template_step_still_routes_coadd_and_auto(monkeypatch):
     assert coadd_calls == [("coadd", None)]
     _, auto_calls = _template_step(monkeypatch, "auto", NICKEL_MAP)
     assert auto_calls == [("auto", None)]
+
+
+def test_template_step_none_builds_nothing_and_reports_nothing(monkeypatch):
+    """`type: none` must stay a real no-op, not a "templates failed" report."""
+    calls = []
+    for name in (
+        "_run_external_templates",
+        "_run_coadd_templates",
+        "_run_auto_templates",
+    ):
+        monkeypatch.setattr(run, name, lambda *a, _n=name, **k: calls.append(_n))
+    monkeypatch.setattr(
+        run, "_log_template_summary", lambda *a, **k: calls.append("summary")
+    )
+
+    run_cfg = run.RunConfig(
+        object_name="x", ra=1.0, dec=2.0, bands=["b"], template_type="none"
+    )
+    out = run._run_template_step(
+        run_cfg,
+        config=_config(NICKEL_MAP),
+        result=mock.Mock(),
+        science_cfg=mock.Mock(),
+        dry_run=True,
+        executor=None,
+    )
+    assert out is None
+    assert calls == []
