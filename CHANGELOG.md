@@ -58,6 +58,28 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   that wheel slot had zero ingestable biases (real: 20100120).
 
 ### Added
+- **SkyMapper templates are now mosaicked, lifting the 10.2′ ceiling.** The
+  DR4 SIA's 0.17° cap is per REQUEST, not per frame: several offset requests
+  against the same `image=` id come back as exact sub-arrays of one CCD pixel
+  grid — identical `CRVAL`, identical `CD`, identical `PV` distortion terms,
+  differing only in `CRPIX`. `fetch` now issues a small overlapping grid of
+  requests against the single selected frame whenever `--size` exceeds the cap
+  and pastes the tiles together at integer pixel offsets (`CRPIX_ref −
+  CRPIX_tile`), so there is **no reprojection, no resampling, and hence no
+  interpolation error, no PSF change and no photometric change** — the assembled
+  header keeps the frame's `CRVAL`/`CD`/`PV` and only shifts `CRPIX` to the new
+  origin. Tiles that disagree on `CRVAL`/`CD`, or that are offset by a
+  fractional pixel, raise `TemplateSourceError` rather than being pasted
+  misaligned. This was the binding constraint on the whole SkyMapper path: a
+  single 10.2′ cutout covers ~16% of a ~20′ Y4KCam field, which is why 85% of
+  every NGC2298 difference image came back flagged `NO_DATA`. Measured on that
+  same field at `--size 0.4`: nine tiles assemble to 17.0′ × 25.5′ and the
+  ingested `template_coadd` covers **37% of the science patch, up from 14%**.
+  The remaining limit is the detector, not the service — a SkyMapper CCD is
+  2048 × 4096 px at 0.4976″/px = 17′ × 34′, so a square request wider than 17′
+  comes back truncated on the short axis and says so explicitly in the log
+  (`max_assembled_deg` records the ceiling). A `--size` at or under 0.17° still
+  issues exactly one request and is byte-for-byte unchanged.
 - **`stips external-template --source {ps1,skymapper} --ra --dec -b <band>`** —
   one command for every external-survey DIA template, replacing the
   source-specific `stips ps1-template` (retained as a working alias). Adds
@@ -69,7 +91,8 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   template source for southern fields (Dec ≲ −30°) with no PS1 coverage. It is
   deliberately **Tier-2 and explicit-only**: `template.type: auto` never selects
   it. DR4 serves single-epoch 100 s frames (5 s frames are rejected outright),
-  capped at 0.17° (10.2′, under most 1-m FOVs), at ~2″ seeing. Validated against
+  capped at 0.17° (10.2′) per request — see the mosaicking entry above — at ~2″
+  seeing. Validated against
   a CTIO self-coadd on NGC2298: DIA succeeds on every visit but recovers 36% of
   the difference-image sources and leaves an ~8× larger systematic residual, so
   prefer `template.type: coadd` whenever SN-free epochs exist. Full comparison

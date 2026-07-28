@@ -1028,7 +1028,8 @@ def external_template_cmd(
     \b
     SkyMapper caveats (southern fields, Dec <= -30):
       - single-epoch 100s frames, NOT deep stacks
-      - cutouts capped at 0.17 deg (10.2'), smaller than the Y4KCam FOV
+      - each REQUEST is capped at 0.17 deg (10.2'), but --size above that is
+        served by mosaicking tiles of one frame, up to the CCD's 17' x 34'
       - prefer a CTIO self-coadd template when SN-free epochs exist
 
     \b

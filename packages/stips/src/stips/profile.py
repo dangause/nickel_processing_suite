@@ -165,8 +165,9 @@ class InstrumentProfile:
     # this is an order-of-magnitude figure, not geometry). Its only consumer is
     # the external-template coverage warning: a survey cutout smaller than the
     # FOV leaves dithered pointings with no PSF-matching kernel candidates
-    # (NoKernelCandidatesError), and SkyMapper's hard 0.17 deg (10.2') cap is
-    # under the FOV of most 1-m-class cameras. Camera geometry is not a reliable
+    # (NoKernelCandidatesError), and even a mosaicked SkyMapper template stops
+    # at the CCD's 17' short axis, under the FOV of some 1-m-class cameras
+    # (Y4KCam is ~20'). Camera geometry is not a reliable
     # substitute (binning, partial illumination), so this is declared, not
     # derived. None means "not measured" and keeps the warning silent.
     fov_arcmin: Optional[float] = None
