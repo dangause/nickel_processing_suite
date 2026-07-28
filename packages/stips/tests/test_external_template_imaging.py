@@ -98,3 +98,28 @@ def test_clamp_cutout_size_clamps_and_warns(caplog):
 
 def test_clamp_cutout_size_no_cap_is_identity():
     assert imaging.clamp_cutout_size(0.4, None, LOG) == 0.4
+
+
+def test_effective_cutout_size_is_the_silent_clamp():
+    """The size a fetch will actually return, with no warning side effect."""
+    assert imaging.effective_cutout_size(0.4, 0.17) == 0.17
+    assert imaging.effective_cutout_size(0.15, 0.17) == 0.15
+    assert imaging.effective_cutout_size(0.4, None) == 0.4
+
+
+def test_validate_cutout_accepts_a_good_frame(tmp_path):
+    path = _write_fits(tmp_path / "ok.fits", 1087, 1087)
+    assert imaging.validate_cutout(path, 102.2475, -36.0053, 0.15) is None
+
+
+def test_validate_cutout_reports_missing_target(tmp_path):
+    path = _write_fits(tmp_path / "off.fits", 1087, 1087)
+    reason = imaging.validate_cutout(path, 150.0, 2.0, 0.15)
+    assert reason and "cover" in reason
+
+
+def test_validate_cutout_reports_undersized_frame(tmp_path):
+    """An edge-trimmed SIA frame clears the 10 kB floor but not this check."""
+    path = _write_fits(tmp_path / "trim.fits", 300, 300)
+    reason = imaging.validate_cutout(path, 102.2475, -36.0053, 0.15)
+    assert reason and "smaller" in reason

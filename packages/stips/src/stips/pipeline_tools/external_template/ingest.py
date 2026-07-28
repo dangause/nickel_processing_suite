@@ -26,10 +26,39 @@ from pathlib import Path
 
 import lsst.daf.butler as dafButler
 
+from . import imaging
 from .core import fits_to_lsst_exposure, ingest_exposure_to_butler
 from .sources import TemplateSourceError, get_source
 
 log = logging.getLogger(__name__)
+
+
+def _profile_fov_arcmin():
+    """Approximate science FOV (arcmin) from the active instrument profile.
+
+    This is the source of the value behind the template-coverage warning: a
+    cutout narrower than the science field leaves dithered pointings with no
+    PSF-matching kernel candidates. Profiles that do not declare
+    ``fov_arcmin`` return None, which keeps the warning silent rather than
+    guessing a field size.
+    """
+    try:
+        from stips.core.config import load_active_profile
+
+        prof = load_active_profile()
+    except Exception as e:
+        log.debug("Could not load instrument profile for the FOV warning: %s", e)
+        return None
+
+    value = getattr(prof, "fov_arcmin", None)
+    if value is None:
+        return None
+    try:
+        fov = float(value)
+    except (TypeError, ValueError):
+        log.warning("Profile fov_arcmin is not numeric (%r); ignoring it.", value)
+        return None
+    return fov if fov > 0 else None
 
 
 def _resolve_source_band(source, local_band):
@@ -256,11 +285,32 @@ def main(argv=None):
                     Path(args.output_dir),
                     mjd_start=args.mjd_start,
                     mjd_end=args.mjd_end,
+                    fov_arcmin=_profile_fov_arcmin(),
                 )
             )
         except TemplateSourceError as e:
             log.error("Failed to fetch a %s template: %s", source.name, e)
             return 1
+
+        # Step 1b: Validate what was actually delivered, for EVERY source. An
+        # adapter's byte-count floor only proves the response was not an error
+        # page; a valid-but-edge-trimmed survey frame would otherwise be
+        # converted and ingested silently, and only surface as a DIA
+        # NoKernelCandidatesError much later.
+        if not getattr(source, "fetch_validates_cutout", False):
+            reason = imaging.validate_cutout(
+                fits_path,
+                args.ra,
+                args.dec,
+                imaging.effective_cutout_size(
+                    args.size, getattr(source, "max_cutout_deg", None)
+                ),
+            )
+            if reason:
+                log.error(
+                    "Rejecting the %s cutout %s: %s", source.name, fits_path, reason
+                )
+                return 1
     else:
         log.error("Must provide --fits when using --skip-download")
         return 1

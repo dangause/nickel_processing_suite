@@ -536,6 +536,11 @@ class PS1Source:
     name = "ps1"
     max_cutout_deg = None
     zeropoint_keywords = ["ZPT", "FPA.ZP", "MAGZERO", "MAGZPT"]
+    #: ``download_ps1_cutout`` validates coverage and size after EACH of its
+    #: three download methods, because that result is what decides whether to
+    #: fall through to the next one. Every return path is therefore already
+    #: validated, and re-checking in ingest.py would just re-open the FITS.
+    fetch_validates_cutout = True
 
     def band_map(self, config: Any) -> dict[str, str]:
         from stips.core.pipeline import template_band_map

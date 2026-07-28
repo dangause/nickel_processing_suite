@@ -146,6 +146,9 @@ class SkyMapperSource:
     #: Verified 2026-07-27: the DR4 SIA returns HTTP 400 above 0.17 deg.
     max_cutout_deg = 0.17
     zeropoint_keywords = ["ZPAPPROX"]
+    #: The SIA download only checks a byte-count floor; coverage/size validation
+    #: is the ingest entry point's job (see imaging.validate_cutout).
+    fetch_validates_cutout = False
 
     def band_map(self, config: Any) -> dict[str, str]:
         from stips.core.pipeline import template_band_map

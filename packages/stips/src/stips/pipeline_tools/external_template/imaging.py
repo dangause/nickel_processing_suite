@@ -25,6 +25,19 @@ def zeropoint_to_calibration_mean(zp: float) -> float:
     return AB_ZERO_FLUX_NJY * 10 ** (-0.4 * zp)
 
 
+def effective_cutout_size(requested_deg: float, max_deg: float | None) -> float:
+    """The size a fetch will actually return, given a source's service limit.
+
+    The silent counterpart to :func:`clamp_cutout_size`, for callers that need
+    the post-clamp size *after* the adapter has already warned about it — most
+    importantly the post-fetch size validation, which must compare against what
+    the service could deliver rather than what was asked for.
+    """
+    if max_deg is None or requested_deg <= max_deg:
+        return requested_deg
+    return max_deg
+
+
 def clamp_cutout_size(requested_deg: float, max_deg: float | None, logger=log) -> float:
     """Clamp a requested cutout size to a source's hard service limit.
 
@@ -137,3 +150,33 @@ def file_meets_requested_size(
     except Exception as e:  # noqa: BLE001 - diagnostic path, never fatal
         log.warning("  Size check failed for %s: %s", path, e)
         return False
+
+
+def validate_cutout(
+    path, ra: float, dec: float, size_deg: float, min_fraction: float = 0.85
+) -> str | None:
+    """Check a fetched cutout is usable as a template; None means it is.
+
+    Runs both cutout validators as a unit so every source gets the same
+    guarantee. The byte-count floor an adapter applies to an HTTP response only
+    proves "this is not an error page" — an edge-trimmed survey frame is a
+    perfectly well-formed FITS file that happens to miss the target or leave no
+    DIA overlap margin.
+
+    ``size_deg`` must be the EFFECTIVE (post-clamp) size — see
+    :func:`effective_cutout_size` — or a source with a service cap would fail
+    its own successful fetch.
+
+    Returns:
+        None when the cutout is usable, otherwise a human-readable reason.
+    """
+    if not file_covers_target(path, ra, dec):
+        return (
+            f"the cutout does not cover the requested position " f"(RA={ra}, Dec={dec})"
+        )
+    if not file_meets_requested_size(path, size_deg, min_fraction):
+        return (
+            f"the cutout is smaller than {min_fraction:.0%} of the "
+            f"{size_deg:.3f} deg requested, leaving too little DIA overlap margin"
+        )
+    return None

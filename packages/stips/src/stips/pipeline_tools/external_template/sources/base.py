@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol
 
 
 class TemplateSourceError(RuntimeError):
@@ -15,9 +15,14 @@ class TemplateSourceError(RuntimeError):
     """
 
 
-@runtime_checkable
 class TemplateSource(Protocol):
-    """A survey that can supply an external DIA template."""
+    """A survey that can supply an external DIA template.
+
+    Deliberately NOT ``@runtime_checkable``: a runtime protocol check only
+    verifies member *names* exist, so ``isinstance(x, TemplateSource)`` would
+    advertise a conformance guarantee it cannot make. Adapters are resolved by
+    name through the ``SOURCES`` registry instead.
+    """
 
     #: Registry key and collection namespace (templates/<name>/<band>).
     name: str
@@ -25,6 +30,12 @@ class TemplateSource(Protocol):
     max_cutout_deg: float | None
     #: FITS header cards to try, in order, when reading the zeropoint.
     zeropoint_keywords: list[str]
+    #: True when ``fetch`` already ran the coverage/size validators on the file
+    #: it returns, so the ingest entry point must not repeat them. Only set this
+    #: when validation is structurally part of the fetch (PS1 needs it to decide
+    #: whether to fall through to its next download method); the default False
+    #: is what gives every other source the check for free.
+    fetch_validates_cutout: bool
 
     def band_map(self, config: Any) -> dict[str, str]:
         """LOCAL science band -> this survey's band name."""

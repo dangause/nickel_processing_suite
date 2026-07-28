@@ -82,6 +82,10 @@ profile = InstrumentProfile(
     template_band_maps={
         "skymapper": {"r": "r", "i": "i"},
     },
+    # Y4KCam covers ~20' on a side. Every SkyMapper cutout (10.2' cap) is
+    # smaller than this, so external-template ingest warns about dithered
+    # pointings falling outside the template.
+    fov_arcmin=20.0,
     # FITS INSTRUME is "Y4KCam" (the camera), not the instrument name "CTIO1m".
     instrument_header_value="Y4KCam",
     header_map={
