@@ -631,16 +631,36 @@ def find_overlapping_patches(skymap, exposure, coord, tract=None):
     return pairs
 
 
-def patch_coverage_fraction(reprojected):
+def patch_coverage_fraction(reprojected, bbox=None):
     """Fraction of a reprojected patch's pixels that carry real warped data.
 
     "Real" means finite, non-zero, and not flagged NO_DATA -- the signature
     ``warpExposure`` leaves outside the input footprint.
+
+    Parameters
+    ----------
+    reprojected : lsst.afw.image.ExposureF
+        A patch-geometry exposure, as returned by ``reproject_to_patch``.
+    bbox : lsst.geom.Box2I, optional
+        Restrict the measurement to this sub-region (clipped to the exposure).
+        Passing the patch's INNER bbox gives a figure that can be summed across
+        patches without double-counting: outer bboxes overlap by
+        ``patchBorder`` on every side, inner ones tile exactly.
     """
     image = reprojected.image.array
+    mask = reprojected.mask.array
+    if bbox is not None:
+        full = reprojected.getBBox()
+        clipped = geom.Box2I(bbox)
+        clipped.clip(full)
+        if clipped.isEmpty():
+            return 0.0
+        x0 = clipped.getMinX() - full.getMinX()
+        y0 = clipped.getMinY() - full.getMinY()
+        image = image[y0 : y0 + clipped.getHeight(), x0 : x0 + clipped.getWidth()]
+        mask = mask[y0 : y0 + clipped.getHeight(), x0 : x0 + clipped.getWidth()]
     if image.size == 0:
         return 0.0
-    mask = reprojected.mask.array
     no_data_bit = reprojected.mask.getPlaneBitMask("NO_DATA")
     usable = np.isfinite(image) & (image != 0) & ((mask & no_data_bit) == 0)
     return float(np.count_nonzero(usable)) / float(image.size)
@@ -939,15 +959,16 @@ def ingest_exposure_to_butler(
         )
         data_ids.append(data_id)
 
-        patch_pixel_area = _pixel_area_arcsec2(
-            patch_info.getWcs(), patch_info.getOuterBBox()
-        )
+        # Area accounting uses the INNER bbox: patch outer bboxes overlap by
+        # patchBorder on every side, so summing outer coverage double-counts
+        # the shared sky (it reported 109% of the input area on the NGC2298
+        # mosaic). Inner bboxes tile the tract exactly.
+        inner_bbox = patch_info.getInnerBBox()
+        patch_pixel_area = _pixel_area_arcsec2(patch_info.getWcs(), inner_bbox)
         if patch_pixel_area:
+            inner_coverage = patch_coverage_fraction(patch_exposure, inner_bbox)
             retained_area_arcmin2 += (
-                coverage
-                * patch_exposure.getBBox().getArea()
-                * patch_pixel_area
-                / 3600.0
+                inner_coverage * inner_bbox.getArea() * patch_pixel_area / 3600.0
             )
         log.info(
             "tract=%d patch=%d: %s (coverage %.1f%%)",
@@ -975,7 +996,7 @@ def ingest_exposure_to_butler(
     if input_area_arcmin2:
         log.info(
             "Sky area: input exposure %.1f arcmin^2 -> retained %.1f arcmin^2 "
-            "across %d patch(es) (%.0f%%)",
+            "across %d patch(es), inner-patch (non-overlapping) area (%.0f%%)",
             input_area_arcmin2,
             retained_area_arcmin2,
             len(data_ids),

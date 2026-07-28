@@ -206,12 +206,18 @@ def run(
             # guard requiring those (the historical bug) never matched and
             # tract/patch were always None. Apply the regex searches to every
             # line instead, keeping the first match of each.
+            #
+            # Both streams are scanned: ingest.py's logging handler writes to
+            # STDERR, so under capture_output=True the lines we are after are
+            # in result.stderr and stdout is empty -- scanning stdout alone
+            # reported tract/patch as None on every real run.
             tract_val = None
             patch_val = None
             patches_val = None
             fits_path = None
 
-            for line in result.stdout.split("\n"):
+            captured = f"{result.stdout or ''}\n{result.stderr or ''}"
+            for line in captured.split("\n"):
                 if tract_val is None:
                     tract_match = re.search(r"'tract':\s*(\d+)", line)
                     if tract_match:

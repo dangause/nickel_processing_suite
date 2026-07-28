@@ -184,6 +184,25 @@ def test_patch_coverage_fraction_detects_empty_reprojection():
     assert patch_coverage_fraction(full) == pytest.approx(1.0)
 
 
+def test_patch_coverage_fraction_can_be_restricted_to_a_sub_bbox():
+    """Sky-area accounting measures the INNER bbox, which tiles without overlap.
+
+    Patch outer bboxes overlap by ``patchBorder`` on every side, so summing
+    outer-bbox coverage double-counts the shared sky and reported >100% of the
+    input exposure's area retained.
+    """
+    exposure = afwImage.ExposureF(geom.Box2I(geom.Point2I(0, 0), geom.Extent2I(40, 40)))
+    exposure.image.array[:, :] = 0.0
+    exposure.mask.array[:, :] = exposure.mask.getPlaneBitMask("NO_DATA")
+    # Only the outer border carries data; the inner 20x20 region is empty.
+    exposure.image.array[:10, :] = 3.0
+    exposure.mask.array[:10, :] = 0
+
+    inner = geom.Box2I(geom.Point2I(10, 10), geom.Extent2I(20, 20))
+    assert patch_coverage_fraction(exposure, inner) == 0.0
+    assert patch_coverage_fraction(exposure) == pytest.approx(0.25)
+
+
 class _FakeDatasetType:
     class _Dims:
         names = ("skymap", "tract", "patch", "band")

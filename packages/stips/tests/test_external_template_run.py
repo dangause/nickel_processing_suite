@@ -150,6 +150,33 @@ def test_run_parses_every_ingested_patch(monkeypatch):
     assert result.patches == [156, 142, 143, 157]
 
 
+def test_run_parses_the_data_id_from_stderr(monkeypatch):
+    """``ingest.py`` configures ``logging`` with the default handler, which
+    writes to STDERR -- so with ``capture_output=True`` every ``Data ID:`` /
+    ``Patches:`` line lands in ``result.stderr`` and stdout is empty. Parsing
+    stdout alone silently reported tract/patch as None on every real run
+    (confirmed against a live SkyMapper ingest). Both streams are scanned.
+    """
+    cfg = _config({"skymapper": {"i": "i"}})
+    monkeypatch.setattr(external_template, "check_exists", lambda *a, **k: False)
+    stderr = (
+        "[2024-01-01 00:00:00] INFO:   Data ID: {'skymap': 'ctio1mRings-v1', "
+        "'tract': 444, 'patch': 156, 'band': 'i'}\n"
+        "[2024-01-01 00:00:00] INFO:   Patches: [156, 142, 143, 157] (tract 444)\n"
+        "[2024-01-01 00:00:00] INFO:   FITS file: /tmp/out/t.fits\n"
+    )
+    monkeypatch.setattr(
+        external_template,
+        "run_with_stack",
+        lambda *a, **k: SimpleNamespace(returncode=0, stdout="", stderr=stderr),
+    )
+    result = external_template.run("skymapper", 102.2, -36.0, "i", cfg)
+    assert result.tract == 444
+    assert result.patch == 156
+    assert result.patches == [156, 142, 143, 157]
+    assert result.fits_path == "/tmp/out/t.fits"
+
+
 def test_run_patches_defaults_to_the_single_parsed_patch(monkeypatch):
     """Older stdout without a ``Patches:`` line still yields a usable list."""
     cfg = _config({"skymapper": {"i": "i"}})
