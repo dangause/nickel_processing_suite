@@ -505,14 +505,19 @@ For **templates**, southern fields have two options, in order of preference:
 
    SkyMapper is **explicit-only** — `template.type: auto` never selects it.
 
-   **Measured on NGC2298 (see `docs/skymapper-template-validation.md`): it is a
-   plumbing fallback, not a science fallback.** Against the validated coadd run
-   on the same night, SkyMapper recovered **12% of the difference-image sources**
-   (1 173 / 9 784) and **67% of its own detections had no coadd counterpart**.
-   Registration was excellent (0.000″ systematic offset), so this is a depth and
-   PSF-matching limit, not an astrometry problem. Use it to get a southern field
-   through the pipeline end-to-end; do not treat its catalogue as a transient
-   list without independent confirmation.
+   **Measured on NGC2298 (see `docs/skymapper-template-validation.md`).** The
+   cutout covers only **~16% of a Y4KCam field** (85% of each difference image is
+   `NO_DATA`), so only same-footprint comparisons are meaningful. Within that
+   footprint SkyMapper recovers **51% of the coadd's sources at ~30% purity**.
+   Registration is excellent (0.000″ systematic offset) — the limit is template
+   depth, not astrometry. Use it to get a southern field through the pipeline;
+   confirm its detections independently.
+
+   **Always pass the DIA config.** `stips dia --subtract-config
+   dia/subtractImages_skymapper.py` (or set `configs.dia.subtract_images` in the
+   YAML). Without it you get `mode="convolveTemplate"`, which deconvolves when
+   the SkyMapper template is blurrier than the science and drives the kernel
+   condition number up ~33×.
 
 ### Coordinate precision for forced photometry
 Target RA/Dec must use full TNS precision (sexagesimal → decimal, 6+ decimal
