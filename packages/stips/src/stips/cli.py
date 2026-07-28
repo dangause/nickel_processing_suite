@@ -472,6 +472,24 @@ def science(
     type=click.Path(exists=True, path_type=Path),
     help="File with bad exposure IDs",
 )
+@click.option(
+    "--subtract-config",
+    "subtract_config",
+    help=(
+        "Override for the subtractImages task config (resolved instrument-dir-"
+        "first, else framework default, same as `stips run`). Defaults to the "
+        "-c YAML's configs.dia.subtract_images if set."
+    ),
+)
+@click.option(
+    "--detect-config",
+    "detect_config",
+    help=(
+        "Override for the detectAndMeasure task config (resolved instrument-"
+        "dir-first, else framework default, same as `stips run`). Defaults to "
+        "the -c YAML's configs.dia.detect_and_measure if set."
+    ),
+)
 @pass_config
 def dia(
     ctx: click.Context,
@@ -485,6 +503,8 @@ def dia(
     object_filter: str | None,
     bad: str | None,
     bad_file: Path | None,
+    subtract_config: str | None,
+    detect_config: str | None,
 ) -> None:
     """Run difference imaging analysis.
 
@@ -495,6 +515,13 @@ def dia(
         stips dia 20240625 --auto
         stips dia 20240625 --template templates/deep/r
         stips dia 20240625 --auto --band r --object 2020wnt
+        stips dia 20240625 --template templates/skymapper/i \\
+            --subtract-config dia/subtractImages_skymapper.py
+
+    If --subtract-config/--detect-config are omitted, the group -c YAML's
+    configs.dia.subtract_images/detect_and_measure are used when set (the same
+    keys `stips run` reads) -- otherwise the instrument-dir/framework default
+    DIA configs apply.
     """
     if not template and not auto_template:
         _print_error("Specify --template or --auto")
@@ -503,6 +530,31 @@ def dia(
     _print_info(f"Running difference imaging for {night}...")
 
     from stips.core import dia as dia_module
+
+    # Fall back to the group -c YAML's configs.dia.* when a flag is omitted,
+    # reusing RunConfig's YAML parsing rather than a second scheme -- this is
+    # what makes `stips dia` (not just `stips run`) honor a YAML-specified DIA
+    # config instead of silently applying the instrument default.
+    subtract_name = subtract_config
+    detect_name = detect_config
+    if subtract_name is None or detect_name is None:
+        config_path = ctx.obj.get("config_path")
+        if config_path:
+            from stips.core.run import RunConfig
+
+            yaml_dia_configs = RunConfig.from_yaml(config_path).dia_configs
+            if subtract_name is None:
+                subtract_name = yaml_dia_configs.subtract_images
+            if detect_name is None:
+                detect_name = yaml_dia_configs.detect_and_measure
+
+    subtract_config_file = (
+        config.resolve_config(subtract_name) if subtract_name else None
+    )
+    detect_config_file = config.resolve_config(detect_name) if detect_name else None
+
+    _print_info(f"  Subtract config: {subtract_config_file or '(instrument default)'}")
+    _print_info(f"  Detect config: {detect_config_file or '(instrument default)'}")
 
     result = dia_module.run(
         night,
@@ -515,6 +567,8 @@ def dia(
         object_filter=object_filter,
         bad_exposures=bad,
         bad_file=bad_file,
+        subtract_config_file=subtract_config_file,
+        detect_config_file=detect_config_file,
     )
 
     _report_result(

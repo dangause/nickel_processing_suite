@@ -5,6 +5,21 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 ## [Unreleased]
 
 ### Fixed
+- **`stips dia` ignored the YAML's `configs.dia.*` overrides.**
+  `dia.run()` has accepted `subtract_config_file`/`detect_config_file` since the
+  YAML-driven `stips run` path started wiring them from
+  `configs.dia.subtract_images`/`detect_and_measure`, but the `stips dia` CLI
+  subcommand exposed neither flag and passed neither — so the documented
+  `stips dia <night> -b i --template ...` workflow silently fell back to the
+  instrument-dir default DIA config instead of the one the YAML specified.
+  Caught on a SkyMapper DIA run: the ctio1m default (`mode='convolveTemplate'`,
+  `spatialKernelOrder=2`) applied instead of `subtractImages_skymapper.py`'s
+  `mode="auto"`, forcing a deconvolution that drove the spatial condition
+  number to 2.4e10. `stips dia` now has `--subtract-config`/`--detect-config`
+  (resolved instrument-dir-first via the same `config.resolve_config()` as
+  `stips run`), falls back to the `-c` YAML's `configs.dia.*` when a flag is
+  omitted, and always prints which config file is in effect so this failure
+  mode is visible instead of silent.
 - **External templates attached a PSF at the wrong pixel scale.**
   `reproject_to_patch()` warped a survey cutout onto the skymap patch grid but
   copied the `GaussianPsf` across unchanged — and `GaussianPsf` stores its width
