@@ -46,7 +46,13 @@ class ExternalTemplateResult:
     band: str
     collection: str
     tract: int | None = None
+    #: The target coordinate's own patch (the first one ingested).
     patch: int | None = None
+    #: Every patch the template was ingested into. An external template now
+    #: lands in each skymap patch its footprint overlaps, exactly as a
+    #: self-coadd template does, so a single ``patch`` no longer describes the
+    #: result. Defaults to ``[patch]`` when the ingest reported only one.
+    patches: list[int] | None = None
     fits_path: str | None = None
     error: str | None = None
     #: True when an existing template was found and left untouched (overwrite=False).
@@ -202,6 +208,7 @@ def run(
             # line instead, keeping the first match of each.
             tract_val = None
             patch_val = None
+            patches_val = None
             fits_path = None
 
             for line in result.stdout.split("\n"):
@@ -213,8 +220,22 @@ def run(
                     patch_match = re.search(r"'patch':\s*(\d+)", line)
                     if patch_match:
                         patch_val = int(patch_match.group(1))
+                if patches_val is None:
+                    # ingest.py logs "  Patches: [156, 142, 143, 157] (tract 444)"
+                    patches_match = re.search(r"Patches:\s*\[([\d,\s]*)\]", line)
+                    if patches_match:
+                        patches_val = [
+                            int(p)
+                            for p in patches_match.group(1).split(",")
+                            if p.strip()
+                        ]
                 if "FITS file:" in line:
                     fits_path = line.split("FITS file:")[-1].strip()
+
+            if not patches_val and patch_val is not None:
+                # Older/degenerate output with no Patches: line still gives a
+                # usable list rather than None.
+                patches_val = [patch_val]
 
             return ExternalTemplateResult(
                 success=True,
@@ -223,6 +244,7 @@ def run(
                 collection=collection,
                 tract=tract_val,
                 patch=patch_val,
+                patches=patches_val,
                 fits_path=fits_path,
             )
         else:

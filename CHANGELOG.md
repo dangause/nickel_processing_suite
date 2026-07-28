@@ -5,6 +5,26 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 ## [Unreleased]
 
 ### Fixed
+- **External templates were truncated to a single skymap patch.**
+  `ingest_exposure_to_butler()` reprojected the survey cutout onto the one patch
+  containing the target coordinate and discarded everything outside it, while
+  the self-coadd template path has always ingested every patch the field
+  overlaps and let `rewarpTemplate` gather them at DIA time. Same field, same
+  tract, i band: the validated CTIO self-coadd covers 4 patches (142, 143, 156,
+  157 of tract 444); the external ingest wrote 1 (156). On NGC2298 the assembled
+  SkyMapper mosaic spans 17.0′ × 25.5′ but the ingested `template_coadd` kept
+  only 10.0′ × 15.3′ of it — the target sits 6.2′, −8.7′ off the centre of patch
+  156 — leaving 39.0% science-field coverage and a template edge running through
+  the field. The ingest now traces the exposure's sky footprint from its WCS and
+  bbox, asks the skymap (`findTractPatchList`) which patches that footprint
+  overlaps, and writes one `template_coadd` per patch, skipping any whose
+  reprojection carries no usable data (an all-`NO_DATA` template is worse than an
+  absent one, since `rewarpTemplate` would still gather it). This is shared
+  PS1-inherited code, so **PS1 templates are affected too**: any PS1 cutout wider
+  than one patch was being clipped the same way. Re-ingest existing external
+  templates and rerun the DIA that used them. `ingest_exposure_to_butler()` now
+  returns a list of data IDs (target patch first) and `ExternalTemplateResult`
+  gained a `patches` field.
 - **`stips dia` ignored the YAML's `configs.dia.*` overrides.**
   `dia.run()` has accepted `subtract_config_file`/`detect_config_file` since the
   YAML-driven `stips run` path started wiring them from

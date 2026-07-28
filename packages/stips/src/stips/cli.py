@@ -949,7 +949,11 @@ def ps1_template(
 
     details = [f"  Collection: {result.collection}"]
     if result.tract is not None:
-        details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
+        patches = result.patches or ([result.patch] if result.patch is not None else [])
+        if len(patches) > 1:
+            details.append(f"  Tract: {result.tract}, Patches: {patches}")
+        else:
+            details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
     if result.fits_path:
         details.append(f"  FITS file: {result.fits_path}")
     _report_result(
@@ -1075,7 +1079,11 @@ def external_template_cmd(
 
     details = [f"  Collection: {result.collection}"]
     if result.tract is not None:
-        details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
+        patches = result.patches or ([result.patch] if result.patch is not None else [])
+        if len(patches) > 1:
+            details.append(f"  Tract: {result.tract}, Patches: {patches}")
+        else:
+            details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
     if result.fits_path:
         details.append(f"  FITS file: {result.fits_path}")
     _report_result(

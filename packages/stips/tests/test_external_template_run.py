@@ -120,6 +120,53 @@ def test_run_parses_tract_and_patch_from_data_id_stdout(monkeypatch):
     assert result.fits_path == "/tmp/out/lsst_template_skymapper_i.fits"
 
 
+def test_run_parses_every_ingested_patch(monkeypatch):
+    """An external template now lands in EVERY skymap patch its footprint
+    overlaps, so the result must report all of them -- reporting only the
+    target's patch is what made the old single-patch truncation invisible.
+
+    ``patch`` stays the target's patch (first in the list) for callers that
+    only ever knew about one.
+    """
+    cfg = _config({"skymapper": {"i": "i"}})
+    monkeypatch.setattr(external_template, "check_exists", lambda *a, **k: False)
+    stdout = (
+        "[2024-01-01 00:00:00] INFO: SUCCESS: skymapper template ingested!\n"
+        "[2024-01-01 00:00:00] INFO:   Collection: templates/skymapper/i\n"
+        "[2024-01-01 00:00:00] INFO:   Data ID: {'skymap': 'ctio1mRings-v1', "
+        "'tract': 444, 'patch': 156, 'band': 'i'}\n"
+        "[2024-01-01 00:00:00] INFO:   Patches: [156, 142, 143, 157] (tract 444)\n"
+        "[2024-01-01 00:00:00] INFO:   FITS file: /tmp/out/lsst_template_skymapper_i.fits\n"
+    )
+    monkeypatch.setattr(
+        external_template,
+        "run_with_stack",
+        lambda *a, **k: SimpleNamespace(returncode=0, stdout=stdout, stderr=""),
+    )
+    result = external_template.run("skymapper", 102.2, -36.0, "i", cfg)
+    assert result.success is True
+    assert result.tract == 444
+    assert result.patch == 156
+    assert result.patches == [156, 142, 143, 157]
+
+
+def test_run_patches_defaults_to_the_single_parsed_patch(monkeypatch):
+    """Older stdout without a ``Patches:`` line still yields a usable list."""
+    cfg = _config({"skymapper": {"i": "i"}})
+    monkeypatch.setattr(external_template, "check_exists", lambda *a, **k: False)
+    stdout = (
+        "[2024-01-01 00:00:00] INFO:   Data ID: {'skymap': 'x', "
+        "'tract': 444, 'patch': 156}\n"
+    )
+    monkeypatch.setattr(
+        external_template,
+        "run_with_stack",
+        lambda *a, **k: SimpleNamespace(returncode=0, stdout=stdout, stderr=""),
+    )
+    result = external_template.run("skymapper", 102.2, -36.0, "i", cfg)
+    assert result.patches == [156]
+
+
 def test_ps1_shim_delegates_with_source_ps1(monkeypatch):
     cfg = _config({}, repo="/tmp/repo")
     cfg.profile.ps1_band_map = {"r": "r"}

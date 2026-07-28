@@ -463,6 +463,265 @@ def reproject_to_patch(exposure, patch_info):
     return reprojected
 
 
+#: Minimum fraction of a patch's pixels that must carry warped data for the
+#: patch to be worth writing. ``findPatchList`` is documented as a naive
+#: bounding-box search that "may find some patches that do not overlap the
+#: region", and an all-NO_DATA ``template_coadd`` is worse than an absent one:
+#: ``rewarpTemplate`` would still gather it and contribute nothing but mask.
+MIN_PATCH_COVERAGE_FRACTION = 0.001
+
+#: Number of samples taken along each edge of the exposure bbox when tracing
+#: its sky footprint. Corners alone are enough for a plain TAN cutout; the
+#: extra edge samples keep the footprint honest under a rotated or distorted
+#: WCS, where the great-circle edges bow away from the corner-to-corner chords.
+_FOOTPRINT_SAMPLES_PER_EDGE = 8
+
+
+def exposure_sky_corners(exposure, samples_per_edge=_FOOTPRINT_SAMPLES_PER_EDGE):
+    """Trace the sky footprint of an exposure from its WCS and bounding box.
+
+    Parameters
+    ----------
+    exposure : lsst.afw.image.ExposureF
+        Exposure whose footprint is wanted. Must carry a WCS.
+    samples_per_edge : int, optional
+        How many points to sample along each bbox edge (>= 2; the endpoints
+        are the bbox corners).
+
+    Returns
+    -------
+    list of lsst.geom.SpherePoint
+        Sky positions around the exposure's perimeter, or an empty list if the
+        exposure has no usable WCS.
+    """
+    wcs = exposure.getWcs()
+    if wcs is None:
+        log.warning("Exposure has no WCS; cannot compute its sky footprint")
+        return []
+
+    bbox = geom.Box2D(exposure.getBBox())
+    n = max(2, int(samples_per_edge))
+    fractions = [i / (n - 1) for i in range(n)]
+
+    x0, x1 = bbox.getMinX(), bbox.getMaxX()
+    y0, y1 = bbox.getMinY(), bbox.getMaxY()
+    pixels = []
+    for f in fractions:
+        x = x0 + f * (x1 - x0)
+        y = y0 + f * (y1 - y0)
+        pixels.extend(
+            [
+                geom.Point2D(x, y0),
+                geom.Point2D(x, y1),
+                geom.Point2D(x0, y),
+                geom.Point2D(x1, y),
+            ]
+        )
+
+    corners = []
+    for pixel in pixels:
+        try:
+            corners.append(wcs.pixelToSky(pixel))
+        except Exception as e:  # noqa: BLE001
+            log.debug("Could not map pixel %s to sky: %s", pixel, e)
+    return corners
+
+
+def find_overlapping_patches(skymap, exposure, coord, tract=None):
+    """Find every skymap patch the exposure's sky footprint overlaps.
+
+    The historical behaviour was ``tract.findPatch(coord)`` -- a single patch,
+    the one holding the target coordinate -- which silently discarded every
+    part of the cutout falling outside it. Measured on NGC2298 that threw away
+    three of the four patches the validated self-coadd template covers.
+
+    Parameters
+    ----------
+    skymap : lsst.skymap.BaseSkyMap
+        The skymap to search.
+    exposure : lsst.afw.image.ExposureF
+        The (un-reprojected) survey exposure.
+    coord : lsst.geom.SpherePoint
+        Target coordinate; its patch is always included and is returned first.
+    tract : int, optional
+        Restrict the result to this tract. When given, patches found in other
+        tracts are dropped and named in the log.
+
+    Returns
+    -------
+    list of (lsst.skymap.TractInfo, lsst.skymap.PatchInfo)
+        Ordered with the target coordinate's tract/patch first.
+    """
+    if tract is None:
+        target_tract_info = skymap.findTract(coord)
+    else:
+        target_tract_info = skymap[tract]
+    target_tract_id = target_tract_info.getId()
+    target_patch_info = target_tract_info.findPatch(coord)
+    target_patch_id = target_patch_info.getSequentialIndex()
+
+    footprint = exposure_sky_corners(exposure)
+    if not footprint:
+        log.warning(
+            "No sky footprint for the exposure; falling back to the single "
+            "target patch tract=%d patch=%d",
+            target_tract_id,
+            target_patch_id,
+        )
+        return [(target_tract_info, target_patch_info)]
+
+    # Public skymap API: findTractPatchList does the tract sweep for us and
+    # returns per-tract patch lists, so no geometry is hand-rolled here.
+    try:
+        overlaps = skymap.findTractPatchList(footprint)
+    except Exception as e:  # noqa: BLE001
+        log.warning(
+            "skymap.findTractPatchList failed (%s); falling back to the single "
+            "target patch tract=%d patch=%d",
+            e,
+            target_tract_id,
+            target_patch_id,
+        )
+        return [(target_tract_info, target_patch_info)]
+
+    found_tracts = sorted(tract_info.getId() for tract_info, _ in overlaps)
+    if len(found_tracts) > 1:
+        log.info(
+            "Exposure footprint spans %d tracts: %s",
+            len(found_tracts),
+            found_tracts,
+        )
+
+    dropped_tracts = []
+    pairs = []
+    seen = set()
+
+    # Target tract/patch first: callers that keep one "primary" data ID (the
+    # template-metadata record, the stdout tract/patch parse in
+    # stips.core.external_template) must keep seeing the target's patch.
+    pairs.append((target_tract_info, target_patch_info))
+    seen.add((target_tract_id, target_patch_id))
+
+    for tract_info, patch_list in overlaps:
+        tract_id = tract_info.getId()
+        if tract is not None and tract_id != target_tract_id:
+            dropped_tracts.append(tract_id)
+            continue
+        for patch_info in patch_list:
+            key = (tract_id, patch_info.getSequentialIndex())
+            if key in seen:
+                continue
+            seen.add(key)
+            pairs.append((tract_info, patch_info))
+
+    if dropped_tracts:
+        log.warning(
+            "Exposure footprint also overlaps tract(s) %s, but tract=%d was "
+            "requested explicitly; those tracts are NOT ingested. Drop the "
+            "explicit tract to cover them.",
+            sorted(set(dropped_tracts)),
+            target_tract_id,
+        )
+
+    log.info(
+        "Footprint overlaps %d patch(es): %s",
+        len(pairs),
+        [(t.getId(), p.getSequentialIndex()) for t, p in pairs],
+    )
+    return pairs
+
+
+def patch_coverage_fraction(reprojected):
+    """Fraction of a reprojected patch's pixels that carry real warped data.
+
+    "Real" means finite, non-zero, and not flagged NO_DATA -- the signature
+    ``warpExposure`` leaves outside the input footprint.
+    """
+    image = reprojected.image.array
+    if image.size == 0:
+        return 0.0
+    mask = reprojected.mask.array
+    no_data_bit = reprojected.mask.getPlaneBitMask("NO_DATA")
+    usable = np.isfinite(image) & (image != 0) & ((mask & no_data_bit) == 0)
+    return float(np.count_nonzero(usable)) / float(image.size)
+
+
+def _pixel_area_arcsec2(wcs, bbox):
+    """Solid angle of one pixel (arcsec^2) at the centre of ``bbox``."""
+    try:
+        center = geom.Point2D(bbox.getCenterX(), bbox.getCenterY())
+        scale = wcs.getPixelScale(center).asArcseconds()
+        return scale * scale if scale > 0 else None
+    except Exception as e:  # noqa: BLE001
+        log.debug("Could not compute pixel area: %s", e)
+        return None
+
+
+def _put_template_patch(butler, exposure, data_id, collection, overwrite):
+    """Write one ``template_coadd``, preserving the skip/overwrite semantics.
+
+    Returns
+    -------
+    str
+        ``"written"``, or ``"exists"`` when an existing dataset was left in
+        place because ``overwrite`` is False.
+    """
+    try:
+        existing_refs = list(
+            butler.registry.queryDatasets(
+                "template_coadd", collections=[collection], dataId=data_id
+            )
+        )
+        if existing_refs and not overwrite:
+            log.info(
+                f"Template already exists for {data_id} in {collection}; skipping ingest"
+            )
+            return "exists"
+        if existing_refs and overwrite:
+            log.info(
+                f"Template already exists for {data_id} in {collection}; overwriting"
+            )
+            try:
+                butler.pruneDatasets(existing_refs, purge=True, unstore=True)
+                log.info(
+                    "Pruned %d existing template_coadd dataset(s)", len(existing_refs)
+                )
+            except Exception as e:
+                log.warning(
+                    "Failed to prune existing template_coadd; will attempt to overwrite anyway: %s",
+                    e,
+                )
+    except Exception as e:
+        log.debug(f"Could not check for existing template: {e}")
+
+    try:
+        butler.put(exposure, "template_coadd", dataId=data_id, run=collection)
+        log.info(f"Successfully ingested template_coadd with dataId: {data_id}")
+
+        # Verify ingestion
+        try:
+            retrieved = butler.get(
+                "template_coadd", dataId=data_id, collections=[collection]
+            )
+            log.info(f"Verified: template is retrievable (bbox: {retrieved.getBBox()})")
+        except Exception as e:
+            log.error(f"WARNING: Failed to verify ingestion: {e}")
+
+    except Exception as e:
+        if isinstance(e, ConflictingDefinitionError):
+            log.info(
+                "Template already exists in collection; treating as success "
+                "(pass --overwrite to replace)"
+            )
+            return "exists"
+        log.error(f"Failed to ingest exposure: {e}")
+        log.error(f"Data ID: {data_id}")
+        log.error(f"Collection: {collection}")
+        raise
+
+    return "written"
+
+
 def ingest_exposure_to_butler(
     butler, exposure, ra, dec, band, collection, tract=None, overwrite=False
 ):
@@ -490,8 +749,11 @@ def ingest_exposure_to_butler(
 
     Returns
     -------
-    dict
-        Data ID of ingested template
+    list of dict
+        Data IDs of every ``template_coadd`` now present in ``collection`` for
+        this exposure -- one per skymap patch the exposure's sky footprint
+        overlaps with usable data. The target coordinate's own patch is first.
+        Patches with no usable overlap after reprojection are omitted.
     """
     log.info(f"Ingesting exposure to Butler collection: {collection}")
 
@@ -593,23 +855,9 @@ def ingest_exposure_to_butler(
             f"Skymap '{skymap_name}' not found. Set SKYMAP_NAME environment variable or create skymap."
         )
 
-    # Find tract/patch from coordinates
+    # Find the tract/patch of the target coordinate...
     coord = geom.SpherePoint(ra, dec, geom.degrees)
 
-    if tract is None:
-        tract_info = skymap.findTract(coord)
-        tract = tract_info.getId()
-        log.info(f"Auto-determined tract: {tract}")
-    else:
-        tract_info = skymap[tract]
-        log.info(f"Using specified tract: {tract}")
-
-    patch_info = tract_info.findPatch(coord)
-    patch = patch_info.getSequentialIndex()
-
-    log.info(f"Target tract={tract}, patch={patch}")
-
-    # Verify the exposure WCS covers the patch
     exp_bbox = exposure.getBBox()
     exp_wcs = exposure.getWcs()
     if exp_wcs is not None:
@@ -622,90 +870,130 @@ def ingest_exposure_to_butler(
     else:
         log.warning("Exposure has no WCS!")
 
-    # CRITICAL: Reproject exposure to match patch geometry
-    # This ensures the template has the exact WCS and bounding box expected by DIA pipeline
-    log.info("Reprojecting template to patch geometry...")
-    exposure = reproject_to_patch(exposure, patch_info)
+    # ...then every patch the exposure's FOOTPRINT overlaps, not just that one.
+    # Writing only the target's patch discarded everything outside it (39% of
+    # the science field on the NGC2298 SkyMapper mosaic); the self-coadd
+    # template path has always ingested every overlapping patch and let
+    # rewarpTemplate gather them at DIA time.
+    pairs = find_overlapping_patches(skymap, exposure, coord, tract=tract)
+    if tract is None:
+        tract = pairs[0][0].getId()
+        log.info(f"Auto-determined target tract: {tract}")
+    else:
+        log.info(f"Using specified tract: {tract}")
+    log.info(f"Target tract={tract}, patch={pairs[0][1].getSequentialIndex()}")
+    log.info(
+        "Considering %d patch(es) for ingest: %s",
+        len(pairs),
+        [(t.getId(), p.getSequentialIndex()) for t, p in pairs],
+    )
 
-    # Build data ID matching dataset type dimensions
-    data_id = {
-        "skymap": skymap_name,
-        "tract": tract,
-        "patch": patch,
-        "band": band,
-    }
+    input_pixel_area = _pixel_area_arcsec2(exp_wcs, exp_bbox) if exp_wcs else None
+    input_area_arcmin2 = (
+        exp_bbox.getArea() * input_pixel_area / 3600.0 if input_pixel_area else None
+    )
 
-    # Only add instrument/physical_filter if they're in the dataset type dimensions
-    if dims and "instrument" in dims:
-        data_id["instrument"] = prof_instrument
-        log.info("Including 'instrument' dimension in data ID")
-    if dims and "physical_filter" in dims:
-        data_id["physical_filter"] = band.upper()
-        log.info("Including 'physical_filter' dimension in data ID")
+    data_ids = []
+    skipped = []
+    retained_area_arcmin2 = 0.0
 
-    # Check if template already exists
-    try:
-        existing_refs = list(
-            butler.registry.queryDatasets(
-                "template_coadd", collections=[collection], dataId=data_id
+    for tract_info, patch_info in pairs:
+        tract_id = tract_info.getId()
+        patch_id = patch_info.getSequentialIndex()
+
+        # CRITICAL: reproject onto this patch's geometry, so the template has
+        # exactly the WCS and bbox the DIA pipeline expects for that patch.
+        log.info("Reprojecting template to tract=%d patch=%d ...", tract_id, patch_id)
+        patch_exposure = reproject_to_patch(exposure, patch_info)
+
+        coverage = patch_coverage_fraction(patch_exposure)
+        if coverage < MIN_PATCH_COVERAGE_FRACTION:
+            skipped.append((tract_id, patch_id, f"coverage {100 * coverage:.3f}%"))
+            log.info(
+                "Skipping tract=%d patch=%d: only %.3f%% of its pixels carry "
+                "warped data (< %.3f%% threshold); an all-NO_DATA template is "
+                "worse than an absent one",
+                tract_id,
+                patch_id,
+                100 * coverage,
+                100 * MIN_PATCH_COVERAGE_FRACTION,
             )
+            continue
+
+        # Build data ID matching dataset type dimensions
+        data_id = {
+            "skymap": skymap_name,
+            "tract": tract_id,
+            "patch": patch_id,
+            "band": band,
+        }
+
+        # Only add instrument/physical_filter if they're in the dataset type dimensions
+        if dims and "instrument" in dims:
+            data_id["instrument"] = prof_instrument
+        if dims and "physical_filter" in dims:
+            data_id["physical_filter"] = band.upper()
+
+        status = _put_template_patch(
+            butler, patch_exposure, data_id, collection, overwrite
         )
-        if existing_refs and not overwrite:
-            log.info(
-                f"Template already exists for {data_id} in {collection}; skipping ingest"
-            )
-            return data_id
-        if existing_refs and overwrite:
-            log.info(
-                f"Template already exists for {data_id} in {collection}; overwriting"
-            )
-            try:
-                butler.pruneDatasets(existing_refs, purge=True, unstore=True)
-                log.info(
-                    "Pruned %d existing template_coadd dataset(s)", len(existing_refs)
-                )
-            except Exception as e:
-                log.warning(
-                    "Failed to prune existing template_coadd; will attempt to overwrite anyway: %s",
-                    e,
-                )
-    except Exception as e:
-        log.debug(f"Could not check for existing template: {e}")
+        data_ids.append(data_id)
 
-    # Put exposure into Butler
-    try:
-        butler.put(exposure, "template_coadd", dataId=data_id, run=collection)
-        log.info(f"Successfully ingested template_coadd with dataId: {data_id}")
-
-        # Verify ingestion
-        try:
-            retrieved = butler.get(
-                "template_coadd", dataId=data_id, collections=[collection]
+        patch_pixel_area = _pixel_area_arcsec2(
+            patch_info.getWcs(), patch_info.getOuterBBox()
+        )
+        if patch_pixel_area:
+            retained_area_arcmin2 += (
+                coverage
+                * patch_exposure.getBBox().getArea()
+                * patch_pixel_area
+                / 3600.0
             )
-            log.info(f"Verified: template is retrievable (bbox: {retrieved.getBBox()})")
-        except Exception as e:
-            log.error(f"WARNING: Failed to verify ingestion: {e}")
+        log.info(
+            "tract=%d patch=%d: %s (coverage %.1f%%)",
+            tract_id,
+            patch_id,
+            status,
+            100 * coverage,
+        )
 
-    except Exception as e:
-        if isinstance(e, ConflictingDefinitionError):
-            log.info(
-                "Template already exists in collection; treating as success "
-                "(pass --overwrite to replace)"
-            )
-            return data_id
-        log.error(f"Failed to ingest exposure: {e}")
-        log.error(f"Data ID: {data_id}")
-        log.error(f"Collection: {collection}")
-        raise
+    if not data_ids:
+        raise RuntimeError(
+            f"No skymap patch retained usable data from this exposure "
+            f"(considered {len(pairs)}: {[(t.getId(), p.getSequentialIndex()) for t, p in pairs]}). "
+            "The cutout probably does not overlap the skymap where it claims to."
+        )
 
-    return data_id
+    log.info(
+        "Ingested %d/%d patch(es): %s",
+        len(data_ids),
+        len(pairs),
+        [(d["tract"], d["patch"]) for d in data_ids],
+    )
+    if skipped:
+        log.info("Skipped patch(es): %s", skipped)
+    if input_area_arcmin2:
+        log.info(
+            "Sky area: input exposure %.1f arcmin^2 -> retained %.1f arcmin^2 "
+            "across %d patch(es) (%.0f%%)",
+            input_area_arcmin2,
+            retained_area_arcmin2,
+            len(data_ids),
+            100 * retained_area_arcmin2 / input_area_arcmin2,
+        )
+
+    return data_ids
 
 
 __all__ = [
+    "MIN_PATCH_COVERAGE_FRACTION",
     "ConflictingDefinitionError",
     "convert_astropy_wcs_to_lsst",
     "degrade_exposure_psf",
+    "exposure_sky_corners",
+    "find_overlapping_patches",
     "fits_to_lsst_exposure",
     "ingest_exposure_to_butler",
+    "patch_coverage_fraction",
     "reproject_to_patch",
 ]

@@ -350,7 +350,11 @@ def main(argv=None):
     # Step 3: Ingest into Butler.
     butler = dafButler.Butler(args.repo, writeable=True)
 
-    data_id = ingest_exposure_to_butler(
+    # One data ID per skymap patch the cutout overlaps with usable data. The
+    # target coordinate's own patch is first and stays the "primary" one, for
+    # the metadata record below and for the tract/patch parse in
+    # stips.core.external_template.run().
+    data_ids = ingest_exposure_to_butler(
         butler,
         exposure,
         args.ra,
@@ -360,6 +364,7 @@ def main(argv=None):
         args.tract,
         overwrite=args.overwrite,
     )
+    primary_data_id = data_ids[0]
 
     # Record template metadata (non-fatal on failure). The date-range fields
     # are a sentinel, not a real observation date range, for every external
@@ -375,7 +380,9 @@ def main(argv=None):
             collection=args.collection,
             start_date=date_sentinel,
             end_date=date_sentinel,
-            tract=str(data_id["tract"]) if "tract" in data_id else None,
+            tract=(
+                str(primary_data_id["tract"]) if "tract" in primary_data_id else None
+            ),
             band=args.band,
             description=f"{source.name} {args.source_band}-band template",
             source=source.name,
@@ -391,7 +398,14 @@ def main(argv=None):
     log.info("=" * 60)
     log.info("SUCCESS: %s template ingested!", source.name)
     log.info("  Collection: %s", args.collection)
-    log.info("  Data ID: %s", data_id)
+    log.info("  Data ID: %s", primary_data_id)
+    # Machine-readable summary line: stips.core.external_template.run() parses
+    # the patch list out of this, so keep the "Patches: [...]" shape.
+    log.info(
+        "  Patches: %s (tract %s)",
+        [d["patch"] for d in data_ids],
+        primary_data_id.get("tract"),
+    )
     log.info("  FITS file: %s", lsst_fits_path)
     log.info(
         "  %s filter: %s -> local band %s", source.name, args.source_band, args.band
