@@ -12,6 +12,7 @@ its module docstring) so ``run.py``, ``cli.py`` and ``bps.py`` need no changes.
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -28,6 +29,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from stips.core.config import Config
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(kw_only=True)
@@ -137,6 +140,19 @@ def run(
     # each caller: unless overwrite is requested, an already-ingested template
     # is left in place and reported as a (successful) skip.
     if not overwrite and check_exists(source, band, config, collection):
+        # Skip-if-exists never rebuilds, so templates ingested before the
+        # multi-patch and PSF-rescale fixes keep their old form (a single
+        # clipped patch with an unrescaled PSF) indefinitely and silently.
+        log.warning(
+            "Template %s/%s already in %s; leaving it as-is. If it was "
+            "ingested before the multi-patch/PSF-rescale fixes it covers only "
+            "one skymap patch and carries a wrong-pixel-scale PSF; re-ingest "
+            "with overwrite (--overwrite / rebuild_templates: true) and rerun "
+            "dependent DIA.",
+            source,
+            band,
+            collection,
+        )
         return ExternalTemplateResult(
             success=True,
             source=source,

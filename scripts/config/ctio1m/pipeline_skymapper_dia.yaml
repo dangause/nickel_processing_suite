@@ -7,8 +7,8 @@
 # from pipeline_ngc2298_gaia.yaml for that reason.
 #
 # READ THIS BEFORE RUNNING — verified SkyMapper limits (2026-07-27):
-#   - DR4 SIA serves SINGLE-EPOCH frames, not stacks. Only 2 x 100s "main"
-#     r-band frames exist at this position in all of DR4.
+#   - DR4 SIA serves SINGLE-EPOCH frames, not stacks. Only a handful of 100s
+#     "main" frames exist at this position in all of DR4.
 #   - Cutouts are hard-capped at 0.17 deg (10.2'). Y4KCam's FOV is ~20', so the
 #     template does NOT cover the full field; dithered pointings will have no
 #     PSF-matching kernel candidates.
@@ -20,14 +20,14 @@
 # Johnson V (~551nm) which is what Y4KCam's "v" is. The ctio1m profile's
 # skymapper band map only covers {"r": "r", "i": "i"}.
 #
-# RUNBOOK (stack-activated shell, from the stips-skymapper-wt worktree):
+# RUNBOOK (stack-activated shell, from the stips checkout):
 #   .venv/bin/stips -c scripts/config/ctio1m/pipeline_skymapper_dia.yaml run --dry-run
 #   .venv/bin/stips -c scripts/config/ctio1m/pipeline_skymapper_dia.yaml run
 
 env:
   REPO: "/Users/dangause/Developer/lick/data_ctio/ngc2298_skymapper_repo"
   STACK_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack"
-  INSTRUMENT_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/stips-skymapper-wt/instruments/ctio1m"
+  INSTRUMENT_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/stips/instruments/ctio1m"
   RAW_PARENT_DIR: "/Users/dangause/Developer/lick/data_ctio"
   REFCAT_REPO: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/refcats"
 

@@ -24,7 +24,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from stips.core import calibs, pipeline  # noqa: E402
+from stips.core import calibs, crosstalk, pipeline  # noqa: E402
 from stips.core.pipeline import find_aliasing_exposure_ids  # noqa: E402
 
 fits = pytest.importorskip("astropy.io.fits")
@@ -211,3 +211,72 @@ def test_calibs_proceeds_when_the_scan_is_clean(tmp_path):
     assert "Colliding exposure_ids" not in (result.error or "")
     commands = [c.args[0][0] for c in run_butler.call_args_list if c.args and c.args[0]]
     assert "ingest-raws" in commands
+
+
+# --------------------------------------------------------------------------- #
+# The scan is also wired into crosstalk's separate ingest path
+# (`_resolve_raw_runs`): a colliding night is skipped, not ingested.
+# --------------------------------------------------------------------------- #
+
+
+def _run_crosstalk_resolve(tmp_path: Path, collisions, *, existing=None):
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir(exist_ok=True)
+    run_butler = MagicMock(name="run_butler")
+    run_butler.return_value = SimpleNamespace(returncode=0, stderr="")
+    bq = MagicMock(name="butler_query")
+    bq.list_collections.return_value = existing or []
+    scan = MagicMock(name="find_aliasing_exposure_ids", return_value=collisions)
+
+    config = MagicMock()
+    config.repo = tmp_path
+    prof = MagicMock()
+    prof.collection_prefix = "Nickel"
+    prof.name = "Nickel"
+    prof.instrument_class = "lsst.obs.stips.active.Instrument"
+
+    with (
+        patch.object(crosstalk, "run_butler", run_butler),
+        patch.object(crosstalk, "butler_query", bq),
+        patch.object(crosstalk, "get_raw_dir", return_value=raw_dir),
+        patch.object(crosstalk, "find_aliasing_exposure_ids", scan),
+    ):
+        raw_runs = crosstalk._resolve_raw_runs([NIGHT], config, prof)
+    return raw_runs, run_butler, scan
+
+
+def test_crosstalk_skips_a_colliding_night_before_ingest(tmp_path):
+    raw_runs, run_butler, _ = _run_crosstalk_resolve(
+        tmp_path,
+        {
+            202305208001: [
+                ("d228001.fits", "20230520_228001"),
+                ("d238001.fits", "20230520_238001"),
+            ]
+        },
+    )
+
+    assert raw_runs == []
+    commands = [c.args[0][0] for c in run_butler.call_args_list if c.args and c.args[0]]
+    assert "ingest-raws" not in commands
+
+
+def test_crosstalk_ingests_when_the_scan_is_clean(tmp_path):
+    raw_runs, run_butler, _ = _run_crosstalk_resolve(tmp_path, {})
+
+    assert len(raw_runs) == 1
+    commands = [c.args[0][0] for c in run_butler.call_args_list if c.args and c.args[0]]
+    assert "ingest-raws" in commands
+
+
+def test_crosstalk_reuse_of_existing_raws_does_not_scan(tmp_path):
+    raw_runs, run_butler, scan = _run_crosstalk_resolve(
+        tmp_path, {}, existing=["Nickel/raw/20230519/x"]
+    )
+
+    # Already-ingested raws are reused untouched; the pre-ingest scan is
+    # pointless there (the collision would already be in the repo).
+    assert raw_runs == ["Nickel/raw/20230519/x"]
+    scan.assert_not_called()
+    commands = [c.args[0][0] for c in run_butler.call_args_list if c.args and c.args[0]]
+    assert "ingest-raws" not in commands
