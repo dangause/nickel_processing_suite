@@ -15,6 +15,8 @@ from stips.collections import generate_run_timestamp as generate_run_timestamp
 from stips.collections import template_deep as template_deep
 from stips.collections import template_deep_glob as template_deep_glob
 from stips.collections import template_deep_run as template_deep_run
+from stips.collections import template_external as template_external
+from stips.collections import template_external_glob as template_external_glob
 from stips.collections import template_ps1 as template_ps1
 from stips.collections import template_ps1_glob as template_ps1_glob
 from stips.core import butler_query
@@ -116,6 +118,25 @@ def ps1_band_map(config: "Config") -> dict[str, str]:
     if prof is None:
         return {}
     return dict(getattr(prof, "ps1_band_map", None) or {})
+
+
+def template_band_map(config: "Config", source: str) -> dict[str, str]:
+    """LOCAL science band -> ``source``'s band name, from the active profile.
+
+    Reads ``profile.template_band_maps[source]``. For ``source == "ps1"`` this
+    falls back to the older ``profile.ps1_band_map`` when no explicit entry
+    exists, so profiles written before ``template_band_maps`` keep working.
+
+    An empty dict means "this instrument takes no templates from that survey" —
+    the safe default for an unknown fork.
+    """
+    prof = config.profile
+    maps = dict(getattr(prof, "template_band_maps", None) or {})
+    if source in maps:
+        return dict(maps[source])
+    if source == "ps1":
+        return dict(getattr(prof, "ps1_band_map", None) or {})
+    return {}
 
 
 def ps1_eligible_bands(config: "Config") -> list[str]:

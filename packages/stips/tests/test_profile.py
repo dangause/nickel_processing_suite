@@ -30,6 +30,13 @@ class TestProfileDefaults(unittest.TestCase):
     def test_const_map_defaults_empty(self):
         self.assertEqual(make_profile().const_map, {})
 
+    def test_fov_arcmin_defaults_to_none(self):
+        """A fork that never measures its FOV opts out of coverage warnings."""
+        self.assertIsNone(make_profile().fov_arcmin)
+
+    def test_fov_arcmin_is_settable(self):
+        self.assertEqual(make_profile(fov_arcmin=20.0).fov_arcmin, 20.0)
+
 
 class TestHookRegistration(unittest.TestCase):
     def test_hook_registers_by_function_name(self):

@@ -1,0 +1,73 @@
+# CTIO 1.0m / Y4KCam — NGC2298 DIA against a SkyMapper DR4 external template.
+#
+# PURPOSE: validate the external-template framework's SkyMapper adapter against
+# the SAME field whose coadd-template DIA is already validated
+# (pipeline_ngc2298_gaia.yaml), so the two lightcurves can be compared directly.
+# object/ra/dec, refcat settings, and science.nights below are copied verbatim
+# from pipeline_ngc2298_gaia.yaml for that reason.
+#
+# READ THIS BEFORE RUNNING — verified SkyMapper limits (2026-07-27):
+#   - DR4 SIA serves SINGLE-EPOCH frames, not stacks. Only 2 x 100s "main"
+#     r-band frames exist at this position in all of DR4.
+#   - Cutouts are hard-capped at 0.17 deg (10.2'). Y4KCam's FOV is ~20', so the
+#     template does NOT cover the full field; dithered pointings will have no
+#     PSF-matching kernel candidates.
+#   - Main-frame seeing is 1.76"-2.33", i.e. NOT sharper than the science.
+# Expect this to perform WORSE than the coadd template. That comparison is the
+# point of this config.
+#
+# Band "v" is deliberately absent: SkyMapper "v" is a ~384nm violet filter, not
+# Johnson V (~551nm) which is what Y4KCam's "v" is. The ctio1m profile's
+# skymapper band map only covers {"r": "r", "i": "i"}.
+#
+# RUNBOOK (stack-activated shell, from the stips-skymapper-wt worktree):
+#   .venv/bin/stips -c scripts/config/ctio1m/pipeline_skymapper_dia.yaml run --dry-run
+#   .venv/bin/stips -c scripts/config/ctio1m/pipeline_skymapper_dia.yaml run
+
+env:
+  REPO: "/Users/dangause/Developer/lick/data_ctio/ngc2298_skymapper_repo"
+  STACK_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack"
+  INSTRUMENT_DIR: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/stips-skymapper-wt/instruments/ctio1m"
+  RAW_PARENT_DIR: "/Users/dangause/Developer/lick/data_ctio"
+  REFCAT_REPO: "/Users/dangause/Developer/lick/lsst/lsst_stack/stack/refcats"
+
+object: "NGC2298"
+ra: 102.246542
+dec: -36.005333
+
+# Only i is SkyMapper-eligible for Y4KCam (see the v-band note above).
+bands: ["i"]
+
+# On-demand Gaia refcats for the cone (astrometry AND photometry from Gaia DR3).
+# NGC2298 is south of PS1, so this selects the Gaia-only overlay — copied
+# verbatim from pipeline_ngc2298_gaia.yaml.
+refcat:
+  mode: gaia
+  radius_deg: 0.4
+
+template:
+  type: skymapper
+  # Larger than the 0.17 deg PER-REQUEST service cap on purpose: the adapter
+  # tiles the request and pastes the tiles losslessly (they are exact sub-arrays
+  # of one CCD grid). 0.4 deg yields a ~17'x25' mosaic covering ~39% of the
+  # Y4KCam field, vs ~16% for a single cutout -- 2x more real DIA sources.
+  size: 0.4
+
+science:
+  # Held-out night, copied verbatim from pipeline_ngc2298_gaia.yaml so this
+  # run is directly comparable to the validated coadd-template DIA.
+  nights:
+    - 20061216
+
+configs:
+  dia:
+    subtract_images: dia/subtractImages_skymapper.py
+    # Relaxed bad-subtraction guard: a mosaic trips ctio1m's 5.0 threshold at
+    # 6.8-7.5 without any real loss of quality. See the config's docstring.
+    detect_and_measure: dia/detectAndMeasure_skymapper.py
+
+options:
+  jobs: 4
+  forced_phot: true
+  forced_phot_image_type: diffim
+  continue_on_error: true

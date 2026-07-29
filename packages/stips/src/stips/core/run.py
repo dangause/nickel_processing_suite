@@ -127,6 +127,36 @@ class CoaddConfigs:
     select_deep_coadd_visits: str | None = None
 
 
+#: ``template.type`` values that are not an external-survey adapter name.
+#: ``none`` skips the template step entirely — the idiom for calibs+science or
+#: transit runs that do no DIA (scripts/config/hd189733, extended_objects).
+INTERNAL_TEMPLATE_TYPES = ("coadd", "auto", "none")
+
+
+def valid_template_types() -> list[str]:
+    """Every accepted ``template.type``: the internal ones plus every adapter."""
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    return [*INTERNAL_TEMPLATE_TYPES, *sorted(SOURCES)]
+
+
+def validate_template_type(template_type: str) -> str:
+    """Reject an unrecognised ``template.type`` as early as it can be seen.
+
+    The dispatch is an if/elif chain with no else, so a typo
+    (``type: skymappper``) used to ingest nothing, and then every band failed
+    DIA with "no template available" -- after the run had already spent hours on
+    calibs and science. Failing here costs nothing and names the valid values.
+    """
+    valid = valid_template_types()
+    if template_type not in valid:
+        raise ValueError(
+            f"Unknown template.type {template_type!r}; valid values are: "
+            f"{', '.join(valid)}"
+        )
+    return template_type
+
+
 @dataclass
 class RunConfig:
     """Configuration parsed from YAML."""
@@ -138,11 +168,15 @@ class RunConfig:
     nights: list[str] = field(default_factory=list)
 
     # Template configuration
-    template_type: str = "ps1"  # "ps1" | "coadd" | "auto"
+    template_type: str = "ps1"  # "ps1" | "skymapper" | "coadd" | "auto"
     template_degrade_seeing: float | None = None
     template_size: float = 0.3  # PS1 cutout size in degrees (default: 0.3)
     template_unity_photocalib: bool = False  # Force PhotoCalib=1.0 for PS1 templates
     template_nights: list[str] = field(default_factory=list)
+    template_mjd_start: float | None = (
+        None  # optional epoch filter (external templates)
+    )
+    template_mjd_end: float | None = None
 
     # Reference catalog configuration.
     # STAGING DEFAULT is "monster" so default runs behave exactly as before
@@ -197,6 +231,9 @@ class RunConfig:
     # HPC container options
     container_image: str | None = None  # Path to Singularity/Apptainer SIF image
 
+    def __post_init__(self) -> None:
+        validate_template_type(self.template_type)
+
     @classmethod
     def from_yaml(cls, path: Path) -> RunConfig:
         """Load configuration from YAML file."""
@@ -213,6 +250,8 @@ class RunConfig:
         template_unity_photocalib = template.get("unity_photocalib", False)
         # Convert template nights to strings (YAML parses 20230519 as int)
         template_nights = [str(n) for n in template.get("nights", [])]
+        template_mjd_start = template.get("mjd_start")
+        template_mjd_end = template.get("mjd_end")
 
         # Extract refcat config (on-demand Gaia/PS1; absent section => defaults).
         # Staging default "monster" keeps behavior unchanged until validated.
@@ -302,6 +341,8 @@ class RunConfig:
             template_size=template_size,
             template_unity_photocalib=template_unity_photocalib,
             template_nights=template_nights,
+            template_mjd_start=template_mjd_start,
+            template_mjd_end=template_mjd_end,
             refcat_mode=refcat_mode,
             refcat_radius_deg=refcat_radius_deg,
             refcat_gaia_quality=refcat_gaia_quality,
@@ -436,47 +477,116 @@ def _split_band_groups(bands: list[str]) -> list[list[str]]:
     return groups or [bands]
 
 
-def _run_ps1_templates(
+def _run_external_templates(
     run_cfg: RunConfig,
     config: Config,
     result: RunResult,
     dry_run: bool,
+    *,
+    source: str,
     bands: list[str] | None = None,
 ) -> None:
-    """Ingest PS1 templates for each band (defaults to all configured bands)."""
-    from stips.core import ps1_template
-    from stips.core.pipeline import ps1_band_map, template_ps1
+    """Ingest an external-survey template for each eligible band."""
+    from stips.core import external_template
+    from stips.core.pipeline import template_band_map
 
-    eligible = ps1_band_map(config)
+    eligible = template_band_map(config, source)
     for band in bands if bands is not None else run_cfg.bands:
         if band not in eligible:
-            log.warning(f"PS1 templates not available for band {band}, skipping")
+            log.warning(
+                "%s templates not available for band %s (eligible: %s), skipping",
+                source,
+                band,
+                ", ".join(sorted(eligible)) or "none",
+            )
             continue
 
-        log.info(f"Ingesting PS1 template for {band}-band...")
+        log.info("Ingesting %s template for %s-band...", source, band)
 
         if not dry_run:
-            ps1_log = _get_step_log_file("ps1_template", band=band)
-            ps1_result = ps1_template.run(
-                ra=run_cfg.ra,
-                dec=run_cfg.dec,
-                band=band,
-                config=config,
+            step_log = _get_step_log_file(f"{source}_template", band=band)
+            tmpl_result = external_template.run(
+                source,
+                run_cfg.ra,
+                run_cfg.dec,
+                band,
+                config,
                 size=run_cfg.template_size,
                 degrade_seeing=run_cfg.template_degrade_seeing,
                 unity_photocalib=run_cfg.template_unity_photocalib,
                 overwrite=run_cfg.rebuild_templates,
-                log_file=ps1_log,
+                mjd_start=getattr(run_cfg, "template_mjd_start", None),
+                mjd_end=getattr(run_cfg, "template_mjd_end", None),
+                log_file=step_log,
             )
-            if ps1_result.success:
-                result.template_collections[band] = ps1_result.collection
-            else:
-                log.warning(f"PS1 template failed for {band}: {ps1_result.error}")
+            if tmpl_result is not None and tmpl_result.success:
+                result.template_collections[band] = tmpl_result.collection
+            elif tmpl_result is not None:
+                log.warning(
+                    "%s template failed for %s: %s", source, band, tmpl_result.error
+                )
         else:
             log.info(
-                f"  [DRY RUN] ps1_template.run(ra={run_cfg.ra}, dec={run_cfg.dec}, band={band})"
+                "  [DRY RUN] external_template.run(%s, ra=%s, dec=%s, band=%s)",
+                source,
+                run_cfg.ra,
+                run_cfg.dec,
+                band,
             )
-            result.template_collections[band] = template_ps1(band)
+            result.template_collections[band] = f"templates/{source}/{band}"
+
+
+def _run_ps1_templates(run_cfg, config, result, dry_run, bands=None) -> None:
+    """Back-compat wrapper; PS1 is one external-template source among several."""
+    _run_external_templates(run_cfg, config, result, dry_run, source="ps1", bands=bands)
+
+
+def _run_template_step(
+    run_cfg: RunConfig,
+    config: Config,
+    result: RunResult,
+    science_cfg,
+    dry_run: bool,
+    *,
+    executor=None,
+):
+    """Build the templates ``run_cfg.template_type`` asks for.
+
+    Every registered external-survey adapter is dispatchable by name, so adding
+    a source needs no edit here (``docs/architecture.md``'s extension contract).
+    ``RunConfig`` has already rejected any other value, so there is no silent
+    fall-through: an unrecognised ``template.type`` never reaches this point.
+
+    Returns a failing ``RunResult`` to abort the run, or None to continue.
+    """
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    if run_cfg.template_type == "none":
+        # No template step at all; skip the summary too, or every band would be
+        # reported as a template failure.
+        return None
+
+    if run_cfg.template_type in SOURCES:
+        _run_external_templates(
+            run_cfg, config, result, dry_run, source=run_cfg.template_type
+        )
+    elif run_cfg.template_type == "coadd":
+        early_exit = _run_coadd_templates(
+            run_cfg, config, result, science_cfg, dry_run, executor=executor
+        )
+        if early_exit is not None:
+            log.error(f"Coadd template build failed: {early_exit.error}")
+            return early_exit
+    elif run_cfg.template_type == "auto":
+        early_exit = _run_auto_templates(
+            run_cfg, config, result, science_cfg, dry_run, executor=executor
+        )
+        if early_exit is not None:
+            log.error(f"Auto template build failed: {early_exit.error}")
+            return early_exit
+
+    _log_template_summary(run_cfg, result)
+    return None
 
 
 def _build_coadd_config_files(run_cfg: "RunConfig", config: "Config") -> list[str]:
@@ -1635,25 +1745,11 @@ def run(
         return early_exit
 
     # Step 1: Templates per band
-    if run_cfg.template_type == "ps1":
-        _run_ps1_templates(run_cfg, config, result, dry_run)
-        _log_template_summary(run_cfg, result)
-    elif run_cfg.template_type == "coadd":
-        early_exit = _run_coadd_templates(
-            run_cfg, config, result, science_cfg, dry_run, executor=executor
-        )
-        if early_exit is not None:
-            log.error(f"Coadd template build failed: {early_exit.error}")
-            return early_exit
-        _log_template_summary(run_cfg, result)
-    elif run_cfg.template_type == "auto":
-        early_exit = _run_auto_templates(
-            run_cfg, config, result, science_cfg, dry_run, executor=executor
-        )
-        if early_exit is not None:
-            log.error(f"Auto template build failed: {early_exit.error}")
-            return early_exit
-        _log_template_summary(run_cfg, result)
+    early_exit = _run_template_step(
+        run_cfg, config, result, science_cfg, dry_run, executor=executor
+    )
+    if early_exit is not None:
+        return early_exit
 
     # Step 2: Calibrations per night (always local — BPS overhead too high
     # for small calib pipelines, and calib qgraphs lack --output-run)

@@ -472,6 +472,24 @@ def science(
     type=click.Path(exists=True, path_type=Path),
     help="File with bad exposure IDs",
 )
+@click.option(
+    "--subtract-config",
+    "subtract_config",
+    help=(
+        "Override for the subtractImages task config (resolved instrument-dir-"
+        "first, else framework default, same as `stips run`). Defaults to the "
+        "-c YAML's configs.dia.subtract_images if set."
+    ),
+)
+@click.option(
+    "--detect-config",
+    "detect_config",
+    help=(
+        "Override for the detectAndMeasure task config (resolved instrument-"
+        "dir-first, else framework default, same as `stips run`). Defaults to "
+        "the -c YAML's configs.dia.detect_and_measure if set."
+    ),
+)
 @pass_config
 def dia(
     ctx: click.Context,
@@ -485,6 +503,8 @@ def dia(
     object_filter: str | None,
     bad: str | None,
     bad_file: Path | None,
+    subtract_config: str | None,
+    detect_config: str | None,
 ) -> None:
     """Run difference imaging analysis.
 
@@ -495,6 +515,13 @@ def dia(
         stips dia 20240625 --auto
         stips dia 20240625 --template templates/deep/r
         stips dia 20240625 --auto --band r --object 2020wnt
+        stips dia 20240625 --template templates/skymapper/i \\
+            --subtract-config dia/subtractImages_skymapper.py
+
+    If --subtract-config/--detect-config are omitted, the group -c YAML's
+    configs.dia.subtract_images/detect_and_measure are used when set (the same
+    keys `stips run` reads) -- otherwise the instrument-dir/framework default
+    DIA configs apply.
     """
     if not template and not auto_template:
         _print_error("Specify --template or --auto")
@@ -503,6 +530,31 @@ def dia(
     _print_info(f"Running difference imaging for {night}...")
 
     from stips.core import dia as dia_module
+
+    # Fall back to the group -c YAML's configs.dia.* when a flag is omitted,
+    # reusing RunConfig's YAML parsing rather than a second scheme -- this is
+    # what makes `stips dia` (not just `stips run`) honor a YAML-specified DIA
+    # config instead of silently applying the instrument default.
+    subtract_name = subtract_config
+    detect_name = detect_config
+    if subtract_name is None or detect_name is None:
+        config_path = ctx.obj.get("config_path")
+        if config_path:
+            from stips.core.run import RunConfig
+
+            yaml_dia_configs = RunConfig.from_yaml(config_path).dia_configs
+            if subtract_name is None:
+                subtract_name = yaml_dia_configs.subtract_images
+            if detect_name is None:
+                detect_name = yaml_dia_configs.detect_and_measure
+
+    subtract_config_file = (
+        config.resolve_config(subtract_name) if subtract_name else None
+    )
+    detect_config_file = config.resolve_config(detect_name) if detect_name else None
+
+    _print_info(f"  Subtract config: {subtract_config_file or '(instrument default)'}")
+    _print_info(f"  Detect config: {detect_config_file or '(instrument default)'}")
 
     result = dia_module.run(
         night,
@@ -515,6 +567,8 @@ def dia(
         object_filter=object_filter,
         bad_exposures=bad,
         bad_file=bad_file,
+        subtract_config_file=subtract_config_file,
+        detect_config_file=detect_config_file,
     )
 
     _report_result(
@@ -895,13 +949,147 @@ def ps1_template(
 
     details = [f"  Collection: {result.collection}"]
     if result.tract is not None:
-        details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
+        patches = result.patches or ([result.patch] if result.patch is not None else [])
+        if len(patches) > 1:
+            details.append(f"  Tract: {result.tract}, Patches: {patches}")
+        else:
+            details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
     if result.fits_path:
         details.append(f"  FITS file: {result.fits_path}")
     _report_result(
         result,
         success_msg="\n✓ PS1 template ingested",
         fail_msg="PS1 template ingestion failed",
+        details=details,
+    )
+
+
+# =============================================================================
+# external-template - Ingest an external survey template for DIA
+# =============================================================================
+
+
+def _external_source_choices() -> list[str]:
+    """Valid ``--source`` values: every registered external-survey adapter.
+
+    Driven by the ``SOURCES`` registry rather than a literal so a new adapter is
+    one ``sources/*.py`` file, as ``docs/architecture.md`` promises. Evaluated
+    once at import (click builds the Choice at decoration time); the registry is
+    populated at import of ``sources/__init__``, so nothing is missed.
+    """
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    return sorted(SOURCES)
+
+
+@cli.command("external-template")
+@click.option(
+    "--source",
+    type=click.Choice(_external_source_choices()),
+    required=True,
+    help="Survey to fetch the template from",
+)
+@click.option("--ra", type=float, required=True, help="Right ascension in degrees")
+@click.option("--dec", type=float, required=True, help="Declination in degrees")
+@click.option(
+    "-b",
+    "--band",
+    required=True,
+    help="Local science band; must be mapped for this source in the profile",
+)
+@click.option(
+    "--collection", help="Output collection (default: templates/{source}/{band})"
+)
+@click.option("--tract", type=int, help="Tract number (auto-determined if not set)")
+@click.option(
+    "--size", type=float, default=0.2, help="Cutout size in degrees (default: 0.2)"
+)
+@click.option("--degrade-seeing", type=float, help="Convolve to this FWHM in arcsec")
+@click.option("--mjd-start", type=float, help="Earliest frame MJD to consider")
+@click.option("--mjd-end", type=float, help="Latest frame MJD to consider")
+@click.option("--overwrite", is_flag=True, help="Replace existing template")
+@pass_config
+def external_template_cmd(
+    ctx: click.Context,
+    config: cfg_module.Config,
+    source: str,
+    ra: float,
+    dec: float,
+    band: str,
+    collection: str | None,
+    tract: int | None,
+    size: float,
+    degrade_seeing: float | None,
+    mjd_start: float | None,
+    mjd_end: float | None,
+    overwrite: bool,
+) -> None:
+    """Download and ingest an external survey template for difference imaging.
+
+    Eligible bands come from the profile's ``template_band_maps[source]``
+    (falling back to ``ps1_band_map`` for source=ps1).
+
+    \b
+    SkyMapper caveats (southern fields, Dec <= -30):
+      - single-epoch 100s frames, NOT deep stacks
+      - each REQUEST is capped at 0.17 deg (10.2'), but --size above that is
+        served by mosaicking tiles of one frame, up to the CCD's 17' x 34'
+      - prefer a CTIO self-coadd template when SN-free epochs exist
+
+    \b
+    Example:
+        stips external-template --source ps1 --ra 210.91 --dec 54.32 -b r
+        stips external-template --source skymapper --ra 102.25 --dec -36.01 -b i
+    """
+    from stips.core import external_template as et
+    from stips.core.pipeline import template_band_map
+
+    eligible = template_band_map(config, source)
+    if band not in eligible:
+        allowed = ", ".join(sorted(eligible)) or "(none configured)"
+        _print_error(
+            f"Band {band!r} has no {source} template mapping for this "
+            f"instrument; available: {allowed}"
+        )
+        sys.exit(1)
+
+    _print_info(
+        f"Ingesting {source} {band}-band template at RA={ra:.4f}, Dec={dec:.4f}..."
+    )
+
+    result = et.run(
+        source,
+        ra,
+        dec,
+        band,
+        config,
+        collection=collection,
+        tract=tract,
+        size=size,
+        degrade_seeing=degrade_seeing,
+        mjd_start=mjd_start,
+        mjd_end=mjd_end,
+        overwrite=overwrite,
+    )
+
+    if result.skipped:
+        _print_info(f"{source} template already exists in {result.collection}")
+        _print_info("Use --overwrite to replace")
+        return
+
+    details = [f"  Collection: {result.collection}"]
+    if result.tract is not None:
+        patches = result.patches or ([result.patch] if result.patch is not None else [])
+        if len(patches) > 1:
+            details.append(f"  Tract: {result.tract}, Patches: {patches}")
+        else:
+            details.append(f"  Tract: {result.tract}, Patch: {result.patch}")
+    if result.fits_path:
+        details.append(f"  FITS file: {result.fits_path}")
+    _report_result(
+        result,
+        success_msg=f"\n✓ {source} template ingested",
+        fail_msg=f"{source} template ingestion failed",
         details=details,
     )
 

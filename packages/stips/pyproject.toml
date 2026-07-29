@@ -13,6 +13,7 @@ dependencies = [
     "scipy",
     "pandas",
     "pyyaml>=6.0",
+    "requests",
     "rich>=13.0.0",
     "matplotlib>=3.5.0",
     "click>=8.0.0",

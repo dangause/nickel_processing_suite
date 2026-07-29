@@ -61,6 +61,8 @@ profile = InstrumentProfile(
     # (Cousins R/I) map to PS1 r/i. b/v have no PS1 equivalent and fall back to
     # coadd templates in "auto" mode. This reproduces the historical r/i policy.
     ps1_band_map={"r": "r", "i": "i"},
+    # The Nickel direct-imaging camera covers ~6.3' (2048 px at 0.37"/px).
+    fov_arcmin=6.3,
     header_map={
         "exposure_time": Field("EXPTIME", unit="s", default=0.0),
         "dark_time": Field("EXPTIME", unit="s", default=0.0),

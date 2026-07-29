@@ -22,8 +22,8 @@ from stips.core.pipeline import (
     redefine_chain,
     resolve_processccd_collections,
     template_deep_glob,
+    template_external_glob,
     template_ps1,
-    template_ps1_glob,
     validate_night,
 )
 from stips.core.query import butler_str_literal
@@ -93,9 +93,24 @@ def find_template(
             coadds = [c for c in coadds if c.endswith(f"/{band}")]
         return coadds[0] if coadds else None
 
-    # Query PS1 and coadd templates with targeted glob patterns
+    # Query coadd templates plus EVERY registered external survey, so adding a
+    # source is one sources/*.py file with no edit here (the extension contract
+    # in docs/architecture.md).
+    #
+    # NOTE: the strategy == "auto" branch above deliberately considers only PS1,
+    # by name. It must NOT become registry-driven: SkyMapper templates are
+    # single-epoch, ~2" seeing and at most 10' wide, so auto-selecting one would
+    # hand DIA a template shallower and blurrier than the science image, and a
+    # future adapter is no safer by default. External sources other than PS1 are
+    # reachable only by explicit --template / template.type, or this legacy
+    # discovery path.
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    patterns = [template_external_glob(name) for name in sorted(SOURCES)]
+    patterns.append(template_deep_glob())
+
     candidates = []
-    for pattern in [template_ps1_glob(), template_deep_glob()]:
+    for pattern in patterns:
         candidates.extend(
             butler_query.list_collections(config, pattern, prefix="templates/") or []
         )

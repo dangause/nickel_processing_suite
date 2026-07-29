@@ -5,9 +5,10 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 ## [Unreleased]
 
 ### Fixed
-- **nickel: no data from 2020 onward could be ingested.** Nickel's `OBSNUM` is an
-  observatory-wide running counter, not a per-night sequence, and it crossed
-  10,000 between 2018 and 2020 — but the profile fed it straight to
+- **nickel: frames with `OBSNUM` ≥ 10,000 could not be ingested.** Nickel's
+  `OBSNUM` is an observatory-wide running counter, not a per-night sequence; it
+  exceeds 10,000 on many nights (already by 2018, though it also resets, so some
+  nights stay 4-digit) — but the profile fed it straight to
   `pack_exposure_id`, which only accepts a 4-digit sequence. Every frame of both
   documented campaigns died at ingest with `seqnum 228041 is out of range
   [0, 10000)`: `stips calibs 20230519` extracted metadata from 0 of 176 files and
@@ -17,6 +18,73 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   every id already in a repo is unchanged, and ids at or above it never made it
   into a repo to begin with. `observation_id` deliberately keeps the full OBSNUM,
   so it still names the source frame (`20230520_228001` → `d228001.fits`).
+- **External templates were truncated to a single skymap patch.**
+  `ingest_exposure_to_butler()` reprojected the survey cutout onto the one patch
+  containing the target coordinate and discarded everything outside it, while
+  the self-coadd template path has always ingested every patch the field
+  overlaps and let `rewarpTemplate` gather them at DIA time. Same field, same
+  tract, i band: the validated CTIO self-coadd covers 4 patches (142, 143, 156,
+  157 of tract 444); the external ingest wrote 1 (156). On NGC2298 the assembled
+  SkyMapper mosaic spans 17.0′ × 25.5′ but the ingested `template_coadd` kept
+  only 10.0′ × 15.3′ of it — the target sits 6.2′, −8.7′ off the centre of patch
+  156 — leaving 39.0% science-field coverage and a template edge running through
+  the field. The ingest now traces the exposure's sky footprint from its WCS and
+  bbox, asks the skymap (`findTractPatchList`) which patches that footprint
+  overlaps, and writes one `template_coadd` per patch, skipping any whose
+  reprojection carries no usable data (an all-`NO_DATA` template is worse than an
+  absent one, since `rewarpTemplate` would still gather it). This is shared
+  PS1-inherited code, so **PS1 templates are affected too**: any PS1 cutout wider
+  than one patch was being clipped the same way. Re-ingest existing external
+  templates and rerun the DIA that used them. `ingest_exposure_to_butler()` now
+  returns a list of data IDs (target patch first) and `ExternalTemplateResult`
+  gained a `patches` field.
+- **`stips external-template` never reported which tract/patch it wrote.**
+  `ingest.py` configures `logging` with the default handler, which writes to
+  *stderr*, so under `capture_output=True` every `Data ID:` line lands in
+  `result.stderr` while `result.stdout` is empty — and the parse only looked at
+  stdout. `tract`/`patch` came back `None` on every real run and the CLI silently
+  omitted the line. Both streams are scanned now, which is also what surfaces the
+  new multi-patch `Patches: [...]` summary.
+- **`stips dia` ignored the YAML's `configs.dia.*` overrides.**
+  `dia.run()` has accepted `subtract_config_file`/`detect_config_file` since the
+  YAML-driven `stips run` path started wiring them from
+  `configs.dia.subtract_images`/`detect_and_measure`, but the `stips dia` CLI
+  subcommand exposed neither flag and passed neither — so the documented
+  `stips dia <night> -b i --template ...` workflow silently fell back to the
+  instrument-dir default DIA config instead of the one the YAML specified.
+  Caught on a SkyMapper DIA run: the ctio1m default (`mode='convolveTemplate'`,
+  `spatialKernelOrder=2`) applied instead of `subtractImages_skymapper.py`'s
+  `mode="auto"`, forcing a deconvolution that drove the spatial condition
+  number to 2.4e10. `stips dia` now has `--subtract-config`/`--detect-config`
+  (resolved instrument-dir-first via the same `config.resolve_config()` as
+  `stips run`), falls back to the `-c` YAML's `configs.dia.*` when a flag is
+  omitted, and always prints which config file is in effect so this failure
+  mode is visible instead of silent.
+- **External templates attached a PSF at the wrong pixel scale.**
+  `reproject_to_patch()` warped a survey cutout onto the skymap patch grid but
+  copied the `GaussianPsf` across unchanged — and `GaussianPsf` stores its width
+  in *pixels*, so the attached PSF silently misrepresented the seeing by the
+  ratio of the two pixel scales. For a SkyMapper frame (0.4976 ″/px → 0.2887
+  ″/px) a real 1.68″ FWHM read as 0.98″, understating the seeing by 1.72×, which
+  makes `subtractImages` `mode="auto"` pick the wrong convolution direction. The
+  bug predates the SkyMapper work: for PS1 (0.25 ″/px) the factor is 0.87, a 13%
+  understatement small enough to have gone unnoticed. The same fix restores the
+  `TEMPLATE_*` provenance keys, which reprojection also dropped. **Migration:
+  this changes the PSF attached to every PS1 template.** Re-ingest existing
+  templates and rerun any DIA that used them. Only an end-to-end ingest
+  exercises this code (it needs a real skymap and the stack), so a regression
+  test now pins the rescaling.
+- **A mistyped `template.type` silently built nothing.** The dispatch was an
+  if/elif chain with no `else`, so `template: {type: skymappper}` ingested no
+  template and then failed every band in DIA with "no template available" —
+  after the run had already spent hours on calibs and science. `RunConfig` now
+  rejects an unrecognised value when the YAML is parsed, naming the valid ones.
+- **External-survey cutouts were only validated for PS1.** The coverage and
+  angular-size checks ran inside PS1's downloader, so an edge-trimmed SkyMapper
+  frame — a well-formed FITS that clears the response-size floor but misses the
+  target or leaves no DIA overlap margin — was converted and ingested silently,
+  surfacing much later as a `NoKernelCandidatesError`. Both checks now run
+  post-fetch for every source.
 - **ctio1m: `exposure_id`/`observation_id` collided across consecutive nights.**
   CTIO straddles UT midnight and Y4KCam seqnums reset each local night, so the
   UT-day-keyed id mapped night N's post-midnight frames and night N+1's afternoon
@@ -30,6 +98,56 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   that wheel slot had zero ingestable biases (real: 20100120).
 
 ### Added
+- **SkyMapper templates are now mosaicked, lifting the 10.2′ ceiling.** The
+  DR4 SIA's 0.17° cap is per REQUEST, not per frame: several offset requests
+  against the same `image=` id come back as exact sub-arrays of one CCD pixel
+  grid — identical `CRVAL`, identical `CD`, identical `PV` distortion terms,
+  differing only in `CRPIX`. `fetch` now issues a small overlapping grid of
+  requests against the single selected frame whenever `--size` exceeds the cap
+  and pastes the tiles together at integer pixel offsets (`CRPIX_ref −
+  CRPIX_tile`), so there is **no reprojection, no resampling, and hence no
+  interpolation error, no PSF change and no photometric change** — the assembled
+  header keeps the frame's `CRVAL`/`CD`/`PV` and only shifts `CRPIX` to the new
+  origin. Tiles that disagree on `CRVAL`/`CD`, or that are offset by a
+  fractional pixel, raise `TemplateSourceError` rather than being pasted
+  misaligned. This was the binding constraint on the whole SkyMapper path: a
+  single 10.2′ cutout covers ~16% of a ~20′ Y4KCam field, which is why 85% of
+  every NGC2298 difference image came back flagged `NO_DATA`. Measured on that
+  same field at `--size 0.4`: nine tiles assemble to 17.0′ × 25.5′ and the
+  ingested `template_coadd` covers **37% of the science patch, up from 14%**.
+  The remaining limit is the detector, not the service — a SkyMapper CCD is
+  2048 × 4096 px at 0.4976″/px = 17′ × 34′, so a square request wider than 17′
+  comes back truncated on the short axis and says so explicitly in the log
+  (`max_assembled_deg` records the ceiling). A `--size` at or under 0.17° still
+  issues exactly one request and is byte-for-byte unchanged.
+- **`stips external-template --source {ps1,skymapper} --ra --dec -b <band>`** —
+  one command for every external-survey DIA template, replacing the
+  source-specific `stips ps1-template` (retained as a working alias). Adds
+  `--mjd-start`/`--mjd-end` so a template frame can be chosen from epochs that
+  exclude the transient. `--source` choices, the `template.type` dispatch, and
+  DIA's explicit-collection lookup all read the adapter registry, so a new
+  survey is one `sources/*.py` file — see `docs/architecture.md`.
+- **`template.type: skymapper`** in the run YAML — SkyMapper DR4 as an external
+  template source for southern fields (Dec ≲ −30°) with no PS1 coverage. It is
+  deliberately **Tier-2 and explicit-only**: `template.type: auto` never selects
+  it. DR4 serves single-epoch 100 s frames (5 s frames are rejected outright),
+  capped at 0.17° (10.2′) per request — see the mosaicking entry above — at ~2″
+  seeing. Validated against
+  a CTIO self-coadd on NGC2298: DIA succeeds on every visit but recovers 36% of
+  the difference-image sources and leaves an ~8× larger systematic residual, so
+  prefer `template.type: coadd` whenever SN-free epochs exist. Full comparison
+  in `docs/skymapper-template-validation.md`.
+- profile `template_band_maps` — per-source external-template band policy
+  (`SOURCE -> (LOCAL band -> that survey's band)`), additive alongside
+  `ps1_band_map`, which stays because it also builds the PS1 refcat filterMap
+  via `STIPS_PS1_BAND_MAP`. Band names are **not** interchangeable across
+  surveys: SkyMapper's `v` is a ~384 nm violet filter, not Johnson V (~551 nm),
+  so ctio1m maps only `{"r": "r", "i": "i"}` and excludes `v` rather than
+  silently fetching a near-UV template for a green science image.
+- profile `fov_arcmin` — approximate science field of view, the input to the
+  template-coverage warning (a cutout narrower than the field leaves dithered
+  pointings with no PSF-matching kernel candidates). Nickel `6.3`, ctio1m
+  `20.0`; unset means no warning.
 - `stips.pack_exposure_id(days_since_2000, seqnum)` — the low-level id packer, for
   profiles whose local night does not map 1:1 onto a UT day. `make_exposure_id`
   now delegates to it and is unchanged for callers.
@@ -45,6 +163,15 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 - refcat: synchronous Gaia TAP fallback for async result-storage outages.
 
 ### Changed
+- **External-template exposure metadata keys are source-namespaced:**
+  `PS1_FILTER`/`PS1_ZEROPOINT` are now `TEMPLATE_SOURCE`/`TEMPLATE_ZEROPOINT`
+  (joined by `TEMPLATE_FWHM_ARCSEC`), since one converter now serves every
+  survey. Templates ingested before this carry the old keys; anything reading
+  them must handle both or re-ingest.
+- **The default external-template download directory moved** from
+  `<repo>/ps1_templates` to `<repo>/external_templates`. The old directory is
+  not read, so the first run after upgrading re-downloads each cutout once;
+  delete the stale directory afterwards, or pass `--output-dir`.
 - ctio1m pipeline configs use the neutral `calibrateImage` default instead of
   Nickel's fitted `tuned_configs/` (which are fitted for Nickel's CCD and now live
   under `instruments/nickel/configs/`). A Y4KCam-fitted config is future work.
