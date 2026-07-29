@@ -279,6 +279,19 @@ logic beyond a flat `header_map` lookup. The hooks Nickel actually defines:
   `stips.pack_exposure_id(days_since_2000, seqnum)` instead — see
   `instruments/ctio1m/profile.py`. This only bites on multi-night ingest, so
   single-night testing will not surface it.
+
+  The *other* way this goes wrong: your sequence keyword may be wider than the
+  packed id's 4-digit sequence field. Nickel's `OBSNUM` is an observatory-wide
+  running counter, not a per-night sequence, and once it passed 10,000 (in 2020)
+  every frame failed ingest with `seqnum ... is out of range [0, 10000)`. Fold it
+  (`OBSNUM % 10000`) — the fold is the identity below the modulus, so ids already
+  in a repo are untouched. **Check the span, not just the magnitude:** the fold is
+  injective only within one 10,000-wide window, so it is safe as long as a single
+  day spans less than that (a Nickel night spans a few hundred). Two frames on one
+  day whose counters differ by an exact multiple of the modulus alias, and no
+  single-header hook can detect that; `stips calibs` runs
+  `stips.core.pipeline.find_aliasing_exposure_ids()` over the night before ingest
+  and aborts naming the files if it ever happens.
 - **`datetime_begin(header)` / `datetime_end(header)`** — Nickel prefers
   `DATE-BEG`/`DATE-END`, falls back to `DATE-OBS`, and synthesizes the end from
   `begin + EXPTIME` when `DATE-END` is missing or bad.

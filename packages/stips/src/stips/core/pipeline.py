@@ -218,6 +218,87 @@ def get_raw_dir(config: Config, night: str) -> Path:
     return config.raw_parent_dir / night / "raw"
 
 
+# Raw-frame extensions scanned by find_aliasing_exposure_ids().
+_RAW_GLOBS = ("*.fits", "*.fits.fz", "*.fit", "*.fts")
+
+
+def find_aliasing_exposure_ids(
+    config: Config, night: str
+) -> dict[int, list[tuple[str, str]]]:
+    """Find raw frames in a night that would share one ``exposure_id``.
+
+    A profile packs a day term plus a fixed-width sequence into a 31-bit
+    ``exposure_id``. When the header's sequence keyword is wider than that field
+    the profile must fold it into range (Nickel's ``OBSNUM`` is an
+    observatory-wide running counter and is folded ``% 10000``), and a fold is
+    injective only within one window: two frames on the same day whose sequence
+    numbers differ by an exact multiple of the window collapse onto one id.
+
+    Nothing further down can catch that. The ``exposure_id`` hook is handed one
+    header at a time and keeps no state across frames, and
+    :func:`stips.pack_exposure_id`'s range guard cannot fire because the folded
+    value is in range by construction. Butler would notice eventually -- two
+    frames landing on one exposure produce a duplicate ``raw`` dataId, or a
+    conflicting ``obs_id`` on the exposure record -- but only as a confusing
+    downstream error, and only after the ingest is underway. This scan is the
+    first layer that sees a whole night at once, so it is where the check
+    belongs.
+
+    The scan is advisory about frames it cannot read: a file whose header the
+    profile's hooks reject is skipped, leaving ingest to reject it properly. The
+    scan must never be the thing that blocks a night it does not understand.
+
+    Args:
+        config: Pipeline configuration (supplies ``raw_parent_dir`` and the
+            active profile).
+        night: Observing night (YYYYMMDD).
+
+    Returns:
+        ``{exposure_id: [(filename, observation_id), ...]}`` for every id
+        claimed by two or more DISTINCT observations. Empty when the night is
+        clean, when the raw dir is missing, or when the profile supplies no
+        ``exposure_id``/``observation_id`` hooks.
+    """
+    profile = config.profile
+    if profile is None:
+        return {}
+    hooks = getattr(profile, "hooks", {}) or {}
+    exposure_id_hook = hooks.get("exposure_id")
+    observation_id_hook = hooks.get("observation_id")
+    if exposure_id_hook is None or observation_id_hook is None:
+        # Without both hooks there is no fold to audit and no stable per-frame
+        # identity to compare, so there is nothing this scan can assert.
+        return {}
+
+    raw_dir = get_raw_dir(config, night)
+    if not raw_dir.is_dir():
+        return {}
+
+    from astropy.io import fits
+
+    # exposure_id -> {observation_id: filename}; a second DISTINCT observation_id
+    # on the same exposure_id is the alias we are looking for. Keying on
+    # observation_id (not filename) means a duplicated copy of one frame is not
+    # mistaken for a collision.
+    seen: dict[int, dict[str, str]] = {}
+    paths = sorted({p for g in _RAW_GLOBS for p in raw_dir.glob(g)})
+    for path in paths:
+        try:
+            header = fits.getheader(path)
+            exp_id = int(exposure_id_hook(header))
+            obs_id = str(observation_id_hook(header))
+        except Exception as exc:  # unreadable/untranslatable -> ingest's problem
+            log.debug("aliasing scan skipped %s: %s", path.name, exc)
+            continue
+        seen.setdefault(exp_id, {}).setdefault(obs_id, path.name)
+
+    return {
+        exp_id: sorted((name, obs_id) for obs_id, name in frames.items())
+        for exp_id, frames in seen.items()
+        if len(frames) > 1
+    }
+
+
 def parse_bad_exposures(
     bad_list: str | None = None,
     bad_file: Path | None = None,
