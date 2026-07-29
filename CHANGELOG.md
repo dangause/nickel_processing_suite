@@ -5,6 +5,18 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 ## [Unreleased]
 
 ### Fixed
+- **nickel: no data from 2020 onward could be ingested.** Nickel's `OBSNUM` is an
+  observatory-wide running counter, not a per-night sequence, and it crossed
+  10,000 between 2018 and 2020 — but the profile fed it straight to
+  `pack_exposure_id`, which only accepts a 4-digit sequence. Every frame of both
+  documented campaigns died at ingest with `seqnum 228041 is out of range
+  [0, 10000)`: `stips calibs 20230519` extracted metadata from 0 of 176 files and
+  aborted, so the pipeline was unreachable for 2020wnt (OBSNUM 12001+) and 2023ixf
+  (228001+). `exposure_id` now packs `OBSNUM % 10000`; that same night now ingests
+  176/176. **No migration is needed:** the fold is the identity below 10,000, so
+  every id already in a repo is unchanged, and ids at or above it never made it
+  into a repo to begin with. `observation_id` deliberately keeps the full OBSNUM,
+  so it still names the source frame (`20230520_228001` → `d228001.fits`).
 - **ctio1m: `exposure_id`/`observation_id` collided across consecutive nights.**
   CTIO straddles UT midnight and Y4KCam seqnums reset each local night, so the
   UT-day-keyed id mapped night N's post-midnight frames and night N+1's afternoon
@@ -21,6 +33,13 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 - `stips.pack_exposure_id(days_since_2000, seqnum)` — the low-level id packer, for
   profiles whose local night does not map 1:1 onto a UT day. `make_exposure_id`
   now delegates to it and is unchanged for callers.
+- `stips.core.pipeline.find_aliasing_exposure_ids()` — a pre-ingest scan, run by
+  `stips calibs`, that aborts naming the offending files when two frames in a
+  night would claim one `exposure_id`. A profile that folds a wide sequence
+  keyword into the packed id's 4-digit field (Nickel: `OBSNUM % 10000`) is only
+  injective within one window, and neither the `exposure_id` hook (one header at
+  a time) nor `pack_exposure_id`'s range guard (the folded value is in range by
+  construction) can see a fold collision. The night-wide scan can.
 - ctio1m Y4KCam DIA tuning (bleed masking, SAT-excluded detection, spatial kernel)
   and coadd visit-selection/warp configs; SA98 validation pipeline configs.
 - refcat: synchronous Gaia TAP fallback for async result-storage outages.
