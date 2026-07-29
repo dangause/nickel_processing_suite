@@ -60,6 +60,14 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   `stips run`), falls back to the `-c` YAML's `configs.dia.*` when a flag is
   omitted, and always prints which config file is in effect so this failure
   mode is visible instead of silent.
+  **Migration: this is a behaviour change, not only a fix.** Every previous
+  `stips dia` result was produced with the instrument-dir defaults while its YAML
+  declared something else, so `stips dia` output from before and after this
+  change is NOT comparable. Measured on Nickel 2023ixf 20230519 with a probe
+  config (`kernelSize` 21→19, plus `nSigmaForKernel` reverting to the stack
+  default 7.0 because a `-C` file replaces the default wholesale): 548 → 583
+  DIA sources, a 6.4% change. Real configs differ by more still. Rerun any
+  `stips dia` results you intend to compare against new ones.
 - **External templates attached a PSF at the wrong pixel scale.**
   `reproject_to_patch()` warped a survey cutout onto the skymap patch grid but
   copied the `GaussianPsf` across unchanged — and `GaussianPsf` stores its width
@@ -67,8 +75,11 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
   ratio of the two pixel scales. For a SkyMapper frame (0.4976 ″/px → 0.2887
   ″/px) a real 1.68″ FWHM read as 0.98″, understating the seeing by 1.72×, which
   makes `subtractImages` `mode="auto"` pick the wrong convolution direction. The
-  bug predates the SkyMapper work: for PS1 (0.25 ″/px) the factor is 0.87, a 13%
-  understatement small enough to have gone unnoticed. The same fix restores the
+  bug predates the SkyMapper work and is WORSE for PS1 on Nickel, not milder:
+  measured end-to-end on 2023ixf, a PS1 template (0.25 ″/px native) reprojected
+  onto a Nickel patch (0.3998 ″/px) attached a **1.920″** PSF where PS1's assumed
+  seeing is **1.2″** — 60% too wide, on every PS1 template Nickel has ever
+  ingested. The same fix restores the
   `TEMPLATE_*` provenance keys, which reprojection also dropped. **Migration:
   this changes the PSF attached to every PS1 template.** Re-ingest existing
   templates and rerun any DIA that used them. Only an end-to-end ingest
