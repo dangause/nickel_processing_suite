@@ -57,6 +57,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20201207 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -94,6 +95,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20201219 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -131,6 +133,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210218 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -195,6 +198,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210228 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -232,6 +236,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210306 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -269,6 +274,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210321 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -333,6 +339,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210324 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -370,6 +377,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210706 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -407,6 +415,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210712 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -444,6 +453,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210715 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -481,6 +491,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210721 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -545,6 +556,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210724 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -582,6 +594,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210810 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -619,6 +632,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210825 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -683,6 +697,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210904 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -747,6 +762,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210906 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -784,6 +800,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210916 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -821,6 +838,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210923 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -858,6 +876,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210926 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -895,6 +914,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210930 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -932,6 +952,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211004 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -969,6 +990,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211009 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1006,6 +1028,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211013 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1043,6 +1066,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211018 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1080,6 +1104,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211027 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1117,6 +1142,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211030 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1154,6 +1180,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211111 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1191,6 +1218,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211113 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1228,6 +1256,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211121 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1265,6 +1294,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211125 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1302,6 +1332,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211129 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1339,6 +1370,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211201 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1376,6 +1408,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211217 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1413,6 +1446,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220105 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1450,6 +1484,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220108 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1487,6 +1522,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220110 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1524,6 +1560,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220118 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1561,6 +1598,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220124 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1598,6 +1636,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220126 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1635,6 +1674,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220208 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1672,6 +1712,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20220212 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 49345331200,
     "repo_status": "deleted",
@@ -1727,6 +1768,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20201207 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -1764,6 +1806,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20201219 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -1801,6 +1844,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210218 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -1856,6 +1900,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210228 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -1893,6 +1938,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210306 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -1930,6 +1976,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210321 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -1985,6 +2032,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210324 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2022,6 +2070,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210706 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2059,6 +2108,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210712 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2096,6 +2146,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210715 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2133,6 +2184,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210721 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2188,6 +2240,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210724 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2225,6 +2278,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210810 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2262,6 +2316,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210825 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2317,6 +2372,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210904 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2372,6 +2428,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210906 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2409,6 +2466,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210916 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2446,6 +2504,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210923 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2483,6 +2542,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210926 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2520,6 +2580,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210930 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2557,6 +2618,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211004 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2594,6 +2656,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211009 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2631,6 +2694,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211013 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2668,6 +2732,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211018 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2705,6 +2770,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211027 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2742,6 +2808,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211030 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2779,6 +2846,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211111 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2816,6 +2884,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211113 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2853,6 +2922,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211121 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2890,6 +2960,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211125 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2927,6 +2998,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211129 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -2964,6 +3036,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211201 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -3019,6 +3092,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20211217 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 59561283584,
     "repo_status": "deleted",
@@ -3074,6 +3148,7 @@
     "stips_git_describe": "3c01e10",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 3c01e10, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 3150929920,
     "repo_status": "present",
@@ -3129,6 +3204,7 @@
     "stips_git_describe": "v1.0.0",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ v1.0.0, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 3120910336,
     "repo_status": "present",
@@ -3184,6 +3260,7 @@
     "stips_git_describe": "00a008f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 00a008f, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 11927384064,
     "repo_status": "present",
@@ -3239,6 +3316,7 @@
     "stips_git_describe": "00a008f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230523 --config dense_strict.py  # stips @ 00a008f, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 11927384064,
     "repo_status": "present",
@@ -3294,6 +3372,7 @@
     "stips_git_describe": "00a008f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230531 --config dense_strict.py  # stips @ 00a008f, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 11927384064,
     "repo_status": "present",
@@ -3340,6 +3419,7 @@
     "stips_git_describe": "00a008f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230608 --config dense_strict.py  # stips @ 00a008f, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 11927384064,
     "repo_status": "present",
@@ -3395,6 +3475,7 @@
     "stips_git_describe": "00a008f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230618 --config dense_strict.py  # stips @ 00a008f, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 11927384064,
     "repo_status": "present",
@@ -3450,6 +3531,7 @@
     "stips_git_describe": "00a008f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230629 --config dense_strict.py  # stips @ 00a008f, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 11927384064,
     "repo_status": "present",
@@ -3514,6 +3596,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3578,6 +3661,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230521 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3642,6 +3726,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230523 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3706,6 +3791,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230527 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3770,6 +3856,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230531 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3834,6 +3921,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230602 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3898,6 +3986,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230608 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -3962,6 +4051,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230611 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4026,6 +4116,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230616 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4090,6 +4181,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230618 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4154,6 +4246,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230625 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4218,6 +4311,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230629 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4282,6 +4376,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230703 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4346,6 +4441,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230706 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4410,6 +4506,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230709 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4474,6 +4571,7 @@
     "stips_git_describe": "4051619",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230714 --config dense_strict.py  # stips @ 4051619, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4538,6 +4636,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230728 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4602,6 +4701,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230801 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4666,6 +4766,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230817 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4730,6 +4831,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230905 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -4794,6 +4896,7 @@
     "stips_git_describe": "bd69650",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230910 --config dense_strict.py  # stips @ bd69650, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 64442707968,
     "repo_status": "deleted",
@@ -5068,6 +5171,7 @@
     "stips_git_describe": "v1.0.0",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ v1.0.0, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5114,6 +5218,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230521 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5169,6 +5274,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230523 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5224,6 +5330,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230527 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5279,6 +5386,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230531 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5325,6 +5433,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230602 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5371,6 +5480,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230608 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5426,6 +5536,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230611 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5481,6 +5592,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230616 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5536,6 +5648,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230618 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5591,6 +5704,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230625 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5637,6 +5751,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230629 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5683,6 +5798,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230703 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5729,6 +5845,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230706 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5784,6 +5901,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230709 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5830,6 +5948,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230714 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5885,6 +6004,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230728 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5931,6 +6051,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230801 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -5986,6 +6107,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230817 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -6041,6 +6163,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230905 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -6096,6 +6219,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230910 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 81498906624,
     "repo_status": "present",
@@ -6160,6 +6284,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6206,6 +6331,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230521 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6270,6 +6396,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230523 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6334,6 +6461,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230527 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6398,6 +6526,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230531 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6444,6 +6573,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230602 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6490,6 +6620,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230608 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6554,6 +6685,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230611 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6618,6 +6750,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230616 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6682,6 +6815,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230618 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6746,6 +6880,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230625 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6792,6 +6927,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230629 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6838,6 +6974,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230703 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6884,6 +7021,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230706 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6948,6 +7086,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230709 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -6994,6 +7133,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230714 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -7058,6 +7198,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230728 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -7104,6 +7245,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230801 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -7168,6 +7310,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230817 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -7232,6 +7375,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230905 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -7296,6 +7440,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230910 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 38096691200,
     "repo_status": "deleted",
@@ -7333,6 +7478,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 8131493888,
     "repo_status": "deleted",
@@ -7370,6 +7516,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230521 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 8131493888,
     "repo_status": "deleted",
@@ -7407,6 +7554,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230523 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 8131493888,
     "repo_status": "deleted",
@@ -7444,6 +7592,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230527 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 8131493888,
     "repo_status": "deleted",
@@ -7481,6 +7630,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230531 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 8131493888,
     "repo_status": "deleted",
@@ -7545,6 +7695,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7812042752,
     "repo_status": "deleted",
@@ -7591,6 +7742,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230521 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7812042752,
     "repo_status": "deleted",
@@ -7628,6 +7780,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230523 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7812042752,
     "repo_status": "deleted",
@@ -7692,6 +7845,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230905 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7812042752,
     "repo_status": "deleted",
@@ -7756,6 +7910,7 @@
     "stips_git_describe": "0946fcb",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230910 --config dense_strict.py  # stips @ 0946fcb, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7812042752,
     "repo_status": "deleted",
@@ -7811,6 +7966,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240905 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 15526825984,
     "repo_status": "deleted",
@@ -7857,6 +8013,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240906 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 15526825984,
     "repo_status": "deleted",
@@ -7912,6 +8069,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20241030 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 15526825984,
     "repo_status": "deleted",
@@ -7967,6 +8125,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240906 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 16024813568,
     "repo_status": "deleted",
@@ -8022,6 +8181,7 @@
     "stips_git_describe": "43cc46c",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230519 --config dense_strict.py  # stips @ 43cc46c, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 3112124416,
     "repo_status": "deleted",
@@ -8077,6 +8237,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240905 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 14288830464,
     "repo_status": "deleted",
@@ -8132,6 +8293,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20241030 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 14288830464,
     "repo_status": "deleted",
@@ -8169,6 +8331,7 @@
     "stips_git_describe": "fe86cb9",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20111113 --config 2023ixf_relaxed.py  # stips @ fe86cb9, lsst-scipipe-12.1.0  (instrument=ctio1m)",
     "repo_size_bytes": 6902390784,
     "repo_status": "present",
@@ -8224,6 +8387,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230815 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8279,6 +8443,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20230816 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8334,6 +8499,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20231014 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8389,6 +8555,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20231015 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8444,6 +8611,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240828 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8499,6 +8667,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240829 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8554,6 +8723,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20241025 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8609,6 +8779,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20241026 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8664,6 +8835,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20250804 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8719,6 +8891,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20250807 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8774,6 +8947,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20251026 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8829,6 +9003,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20251027 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 35957551104,
     "repo_status": "deleted",
@@ -8884,6 +9059,7 @@
     "stips_git_describe": "0f7ec0e",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20250802 --config dense_strict.py  # stips @ 0f7ec0e, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 19134898176,
     "repo_status": "deleted",
@@ -8979,6 +9155,7 @@
     "stips_git_describe": "17a8cc3",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20210208 --config 2023ixf_relaxed.py  # stips @ 17a8cc3, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7430676480,
     "repo_status": "deleted",
@@ -9025,6 +9202,7 @@
     "stips_git_describe": "17a8cc3",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240624 --config 2023ixf_relaxed.py  # stips @ 17a8cc3, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7430676480,
     "repo_status": "deleted",
@@ -9071,6 +9249,7 @@
     "stips_git_describe": "17a8cc3",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240905 --config 2023ixf_relaxed.py  # stips @ 17a8cc3, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7430676480,
     "repo_status": "deleted",
@@ -9117,10 +9296,575 @@
     "stips_git_describe": "17a8cc3",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20240906 --config 2023ixf_relaxed.py  # stips @ 17a8cc3, lsst-scipipe-12.1.0  (instrument=nickel)",
     "repo_size_bytes": 7430676480,
     "repo_status": "deleted",
     "reclaimed_at": "2026-06-25",
+    "notes": null
+  },
+  {
+    "repo": "nickel_smoketest_repo",
+    "repo_path": "/Users/dangause/Developer/lick/data/nickel_smoketest_repo",
+    "target": "nickel_smoketest",
+    "instrument": "nickel",
+    "night": "20230519",
+    "step": "science",
+    "final_status": "partial",
+    "configs_tried": [
+      {
+        "config": "2023ixf_relaxed.py",
+        "is_fallback": false,
+        "quanta_attempted": 0,
+        "quanta_succeeded": 381,
+        "quanta_failed": 9,
+        "failed_exposures": [
+          {
+            "exposure_id": 85408167,
+            "error": "INFO 2026-07-29T10:47:18.674-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 1 quanta successfully, 0 failed and 485 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408095,
+            "error": "INFO 2026-07-29T10:47:18.860-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 2 quanta successfully, 0 failed and 484 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408141,
+            "error": "INFO 2026-07-29T10:47:19.255-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 3 quanta successfully, 0 failed and 483 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408109,
+            "error": "INFO 2026-07-29T10:47:19.441-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 4 quanta successfully, 0 failed and 482 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408128,
+            "error": "INFO 2026-07-29T10:47:19.731-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 5 quanta successfully, 0 failed and 481 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408109,
+            "error": "INFO 2026-07-29T10:47:20.125-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 6 quanta successfully, 0 failed and 480 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408162,
+            "error": "INFO 2026-07-29T10:47:21.635-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 8 quanta successfully, 0 failed and 478 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408161,
+            "error": "INFO 2026-07-29T10:47:24.747-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 9 quanta successfully, 0 failed and 477 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408096,
+            "error": "INFO 2026-07-29T10:47:24.940-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 10 quanta successfully, 0 failed and 476 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408161,
+            "error": "INFO 2026-07-29T10:47:25.128-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 11 quanta successfully, 0 failed and 475 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408142,
+            "error": "INFO 2026-07-29T10:47:25.513-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408156, band: 'b', day_obs: 20230520, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85408142,
+            "error": "INFO 2026-07-29T10:47:26.715-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 12 quanta successfully, 0 failed and 474 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408106,
+            "error": "INFO 2026-07-29T10:47:29.187-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 15 quanta successfully, 0 failed and 471 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408106,
+            "error": "INFO 2026-07-29T10:47:30.318-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 16 quanta successfully, 0 failed and 470 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408145,
+            "error": "INFO 2026-07-29T10:47:30.425-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408108, band: 'b', day_obs: 20230520, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85408165,
+            "error": "lsst.meas.astrom.exceptions.MatcherFailure: No matches found: {'iterations': 11}"
+          },
+          {
+            "exposure_id": 85408165,
+            "error": "ERROR 2026-07-29T10:47:32.554-04:00 lsst.calibrateImage.astrometry (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408142, band: 'b', day_obs: 20230520, physical_filter: 'B'})(astrometry."
+          },
+          {
+            "exposure_id": 85408129,
+            "error": "INFO 2026-07-29T10:47:33.663-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 18 quanta successfully, 28 failed and 440 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408159,
+            "error": "INFO 2026-07-29T10:47:36.041-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 19 quanta successfully, 28 failed and 439 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408159,
+            "error": "INFO 2026-07-29T10:47:36.321-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 21 quanta successfully, 28 failed and 437 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408159,
+            "error": "INFO 2026-07-29T10:47:37.131-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 22 quanta successfully, 28 failed and 436 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408111,
+            "error": "INFO 2026-07-29T10:47:37.314-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 23 quanta successfully, 28 failed and 435 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408127,
+            "error": "INFO 2026-07-29T10:47:38.949-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 24 quanta successfully, 28 failed and 434 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408146,
+            "error": "INFO 2026-07-29T10:47:39.661-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408157, band: 'v', day_obs: 20230520, physical_filter: 'V'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85408146,
+            "error": "INFO 2026-07-29T10:47:42.453-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 26 quanta successfully, 28 failed and 432 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408124,
+            "error": "INFO 2026-07-29T10:47:42.945-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 27 quanta successfully, 28 failed and 431 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408123,
+            "error": "INFO 2026-07-29T10:47:43.057-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 28 quanta successfully, 28 failed and 430 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408143,
+            "error": "INFO 2026-07-29T10:47:43.375-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 29 quanta successfully, 28 failed and 429 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408166,
+            "error": "INFO 2026-07-29T10:47:44.885-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 30 quanta successfully, 28 failed and 428 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408154,
+            "error": "INFO 2026-07-29T10:47:45.255-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 32 quanta successfully, 28 failed and 426 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408140,
+            "error": "INFO 2026-07-29T10:47:48.333-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 34 quanta successfully, 28 failed and 424 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408158,
+            "error": "INFO 2026-07-29T10:47:50.115-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 36 quanta successfully, 28 failed and 422 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408126,
+            "error": "INFO 2026-07-29T10:47:52.206-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 37 quanta successfully, 28 failed and 421 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408153,
+            "error": "INFO 2026-07-29T10:47:54.161-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408124, band: 'b', day_obs: 20230520, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85408144,
+            "error": "INFO 2026-07-29T10:47:54.882-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 39 quanta successfully, 28 failed and 419 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408153,
+            "error": "INFO 2026-07-29T10:47:55.273-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 40 quanta successfully, 28 failed and 418 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408110,
+            "error": "INFO 2026-07-29T10:47:58.758-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 43 quanta successfully, 39 failed and 404 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408110,
+            "error": "INFO 2026-07-29T10:48:00.240-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408141, band: 'b', day_obs: 20230520, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85408110,
+            "error": "INFO 2026-07-29T10:48:01.233-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 44 quanta successfully, 39 failed and 403 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408105,
+            "error": "INFO 2026-07-29T10:48:01.916-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408164, band: 'b', day_obs: 20230520, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85408092,
+            "error": "ERROR 2026-07-29T10:48:03.071-04:00 lsst.calibrateImage.astrometry (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85408164, band: 'b', day_obs: 20230520, physical_filter: 'B'})(astrometry."
+          },
+          {
+            "exposure_id": 85408092,
+            "error": "lsst.meas.astrom.exceptions.MatcherFailure: No matches found: {'iterations': 4}"
+          },
+          {
+            "exposure_id": 85408092,
+            "error": "INFO 2026-07-29T10:48:04.094-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 45 quanta successfully, 39 failed and 402 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408155,
+            "error": "INFO 2026-07-29T10:48:07.843-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 47 quanta successfully, 50 failed and 389 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408155,
+            "error": "INFO 2026-07-29T10:48:09.161-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 48 quanta successfully, 50 failed and 388 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408155,
+            "error": "lsst.meas.astrom.exceptions.MatcherFailure: No matches found: {'iterations': 3}"
+          },
+          {
+            "exposure_id": 85408155,
+            "error": "INFO 2026-07-29T10:48:10.796-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 50 quanta successfully, 50 failed and 386 remain out of total 486 quanta."
+          },
+          {
+            "exposure_id": 85408155,
+            "error": "ERROR 2026-07-29T10:48:10.898-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:811) - Upstream job failed for task <analyzeSingleVisitStar dataId={instrument: 'Nickel', visit: 85408162, "
+          }
+        ],
+        "error": null,
+        "quanta_parse_failed": false
+      },
+      {
+        "config": "2023ixf_relaxed_psfex_sparse.py",
+        "is_fallback": true,
+        "quanta_attempted": 0,
+        "quanta_succeeded": 66,
+        "quanta_failed": 3,
+        "failed_exposures": [],
+        "error": null,
+        "quanta_parse_failed": false
+      }
+    ],
+    "total_exposures": 0,
+    "successful_exposures": 447,
+    "output_collection": "Nickel/runs/20230519/processCcd/20260729T144642Z/run",
+    "timestamp_end": "20260729T144655Z",
+    "started_at": "20260729T144655Z",
+    "ended_at": "20260729T145448Z",
+    "duration_s": 473,
+    "duration_approx": false,
+    "stips_git_sha": "6409ef60df",
+    "stips_git_describe": "v2.0.1-55-g6409ef6",
+    "lsst_stack_version": "lsst-scipipe-12.1.0",
+    "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": "gf03f954c0e+3d14ea8aaf",
+    "rerun_recipe": "stips science 20230519 --config 2023ixf_relaxed.py  # stips @ v2.0.1-55-g6409ef6, gf03f954c0e+3d14ea8aaf  (instrument=nickel)",
+    "repo_size_bytes": 2032775168,
+    "repo_status": "present",
+    "reclaimed_at": null,
+    "notes": null
+  },
+  {
+    "repo": "nickel_smoketest_repo",
+    "repo_path": "/Users/dangause/Developer/lick/data/nickel_smoketest_repo",
+    "target": "nickel_smoketest",
+    "instrument": "nickel",
+    "night": "20230521",
+    "step": "science",
+    "final_status": "partial",
+    "configs_tried": [
+      {
+        "config": "2023ixf_relaxed.py",
+        "is_fallback": false,
+        "quanta_attempted": 0,
+        "quanta_succeeded": 420,
+        "quanta_failed": 12,
+        "failed_exposures": [
+          {
+            "exposure_id": 85429031,
+            "error": "INFO 2026-07-29T11:30:47.605-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 1 quanta successfully, 0 failed and 557 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429012,
+            "error": "INFO 2026-07-29T11:30:47.999-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 2 quanta successfully, 0 failed and 556 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429025,
+            "error": "INFO 2026-07-29T11:30:48.291-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 3 quanta successfully, 0 failed and 555 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429013,
+            "error": "INFO 2026-07-29T11:30:48.660-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 5 quanta successfully, 0 failed and 553 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429025,
+            "error": "INFO 2026-07-29T11:30:48.950-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 6 quanta successfully, 0 failed and 552 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429041,
+            "error": "INFO 2026-07-29T11:30:50.555-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 8 quanta successfully, 0 failed and 550 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429005,
+            "error": "INFO 2026-07-29T11:30:53.558-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 9 quanta successfully, 0 failed and 549 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429011,
+            "error": "INFO 2026-07-29T11:30:53.958-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 10 quanta successfully, 0 failed and 548 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429014,
+            "error": "INFO 2026-07-29T11:30:54.251-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 11 quanta successfully, 0 failed and 547 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429004,
+            "error": "INFO 2026-07-29T11:30:54.363-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429038, band: 'i', day_obs: 20230522, physical_filter: 'I'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429027,
+            "error": "INFO 2026-07-29T11:30:55.894-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 13 quanta successfully, 0 failed and 545 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429028,
+            "error": "INFO 2026-07-29T11:30:56.183-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 15 quanta successfully, 0 failed and 543 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429022,
+            "error": "INFO 2026-07-29T11:30:59.492-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 16 quanta successfully, 0 failed and 542 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429022,
+            "error": "INFO 2026-07-29T11:30:59.818-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429025, band: 'b', day_obs: 20230522, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429009,
+            "error": "ERROR 2026-07-29T11:31:00.869-04:00 lsst.calibrateImage.astrometry (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429025, band: 'b', day_obs: 20230522, physical_filter: 'B'})(astrometry."
+          },
+          {
+            "exposure_id": 85429009,
+            "error": "lsst.meas.astrom.exceptions.MatcherFailure: No matches found: {'iterations': 10}"
+          },
+          {
+            "exposure_id": 85429002,
+            "error": "ERROR 2026-07-29T11:31:01.879-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:791) - Task <calibrateImage dataId={instrument: 'Nickel', detector: 0, visit: 85429025, band: 'b', day_obs:"
+          },
+          {
+            "exposure_id": 85429009,
+            "error": "INFO 2026-07-29T11:31:01.960-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 19 quanta successfully, 17 failed and 522 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429003,
+            "error": "INFO 2026-07-29T11:31:04.402-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 20 quanta successfully, 17 failed and 521 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429003,
+            "error": "INFO 2026-07-29T11:31:04.659-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 22 quanta successfully, 17 failed and 519 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429003,
+            "error": "INFO 2026-07-29T11:31:05.365-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 23 quanta successfully, 17 failed and 518 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429008,
+            "error": "INFO 2026-07-29T11:31:06.784-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429014, band: 'i', day_obs: 20230522, physical_filter: 'I'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429040,
+            "error": "INFO 2026-07-29T11:31:07.614-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 24 quanta successfully, 17 failed and 517 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429053,
+            "error": "INFO 2026-07-29T11:31:08.101-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429029, band: 'v', day_obs: 20230522, physical_filter: 'V'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429006,
+            "error": "INFO 2026-07-29T11:31:08.941-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 25 quanta successfully, 17 failed and 516 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429053,
+            "error": "INFO 2026-07-29T11:31:09.146-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 26 quanta successfully, 17 failed and 515 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429043,
+            "error": "INFO 2026-07-29T11:31:10.489-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 27 quanta successfully, 17 failed and 514 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429043,
+            "error": "INFO 2026-07-29T11:31:10.671-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 28 quanta successfully, 17 failed and 513 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429043,
+            "error": "INFO 2026-07-29T11:31:11.822-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 29 quanta successfully, 17 failed and 512 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429010,
+            "error": "INFO 2026-07-29T11:31:12.686-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429041, band: 'b', day_obs: 20230522, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429010,
+            "error": "ERROR 2026-07-29T11:31:13.372-04:00 lsst.calibrateImage.astrometry (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429041, band: 'b', day_obs: 20230522, physical_filter: 'B'})(astrometry."
+          },
+          {
+            "exposure_id": 85429023,
+            "error": "WARNING 2026-07-29T11:31:13.620-04:00 lsst.afw.fits (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429041, band: 'b', day_obs: 20230522, physical_filter: 'B'})(fits.cc:971) - In void lss"
+          },
+          {
+            "exposure_id": 85429023,
+            "error": "lsst.meas.astrom.exceptions.MatcherFailure: No matches found: {'iterations': 3}"
+          },
+          {
+            "exposure_id": 85429023,
+            "error": "INFO 2026-07-29T11:31:14.684-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 30 quanta successfully, 17 failed and 511 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429050,
+            "error": "INFO 2026-07-29T11:31:14.868-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 30 quanta successfully, 28 failed and 500 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429049,
+            "error": "INFO 2026-07-29T11:31:16.729-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 31 quanta successfully, 28 failed and 499 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429049,
+            "error": "INFO 2026-07-29T11:31:18.008-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 32 quanta successfully, 28 failed and 498 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429033,
+            "error": "INFO 2026-07-29T11:31:20.639-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429013, band: 'i', day_obs: 20230522, physical_filter: 'I'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429033,
+            "error": "INFO 2026-07-29T11:31:21.640-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429009, band: 'r', day_obs: 20230522, physical_filter: 'R'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429021,
+            "error": "INFO 2026-07-29T11:31:23.190-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429031, band: 'r', day_obs: 20230522, physical_filter: 'R'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429021,
+            "error": "INFO 2026-07-29T11:31:23.748-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 37 quanta successfully, 28 failed and 493 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429044,
+            "error": "INFO 2026-07-29T11:31:25.234-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 38 quanta successfully, 28 failed and 492 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429047,
+            "error": "INFO 2026-07-29T11:31:30.692-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 42 quanta successfully, 28 failed and 488 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429047,
+            "error": "INFO 2026-07-29T11:31:31.495-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 43 quanta successfully, 28 failed and 487 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429052,
+            "error": "ERROR 2026-07-29T11:31:32.375-04:00 lsst.calibrateImage.astrometry (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429023, band: 'b', day_obs: 20230522, physical_filter: 'B'})(astrometry."
+          },
+          {
+            "exposure_id": 85429047,
+            "error": "lsst.meas.astrom.exceptions.MatcherFailure: No matches found: {'iterations': 8}"
+          },
+          {
+            "exposure_id": 85429052,
+            "error": "ERROR 2026-07-29T11:31:33.373-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:791) - Task <calibrateImage dataId={instrument: 'Nickel', detector: 0, visit: 85429023, band: 'b', day_obs:"
+          },
+          {
+            "exposure_id": 85429052,
+            "error": "INFO 2026-07-29T11:31:33.379-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 44 quanta successfully, 39 failed and 475 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429030,
+            "error": "INFO 2026-07-29T11:31:36.160-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 46 quanta successfully, 39 failed and 473 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429030,
+            "error": "INFO 2026-07-29T11:31:38.480-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429034, band: 'r', day_obs: 20230522, physical_filter: 'R'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429035,
+            "error": "INFO 2026-07-29T11:31:46.529-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 53 quanta successfully, 50 failed and 455 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429035,
+            "error": "INFO 2026-07-29T11:31:47.261-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 54 quanta successfully, 50 failed and 454 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429035,
+            "error": "INFO 2026-07-29T11:31:48.310-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 55 quanta successfully, 50 failed and 453 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429042,
+            "error": "INFO 2026-07-29T11:31:48.723-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429007, band: 'v', day_obs: 20230522, physical_filter: 'V'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429042,
+            "error": "INFO 2026-07-29T11:31:51.137-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429044, band: 'v', day_obs: 20230522, physical_filter: 'V'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429037,
+            "error": "INFO 2026-07-29T11:31:51.437-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 56 quanta successfully, 50 failed and 452 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429037,
+            "error": "INFO 2026-07-29T11:31:52.589-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 57 quanta successfully, 50 failed and 451 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429037,
+            "error": "INFO 2026-07-29T11:31:53.348-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 58 quanta successfully, 50 failed and 450 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429051,
+            "error": "INFO 2026-07-29T11:31:57.933-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 63 quanta successfully, 50 failed and 445 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429051,
+            "error": "INFO 2026-07-29T11:31:59.664-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429032, band: 'r', day_obs: 20230522, physical_filter: 'R'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429045,
+            "error": "INFO 2026-07-29T11:32:01.103-04:00 lsst.calibrateImage (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429043, band: 'b', day_obs: 20230522, physical_filter: 'B'})(calibrateImage.py:954) "
+          },
+          {
+            "exposure_id": 85429045,
+            "error": "INFO 2026-07-29T11:32:01.152-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 64 quanta successfully, 50 failed and 444 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429045,
+            "error": "INFO 2026-07-29T11:32:01.273-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 66 quanta successfully, 50 failed and 442 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429045,
+            "error": "ERROR 2026-07-29T11:32:01.908-04:00 lsst.calibrateImage.astrometry (calibrateImage:{instrument: 'Nickel', detector: 0, visit: 85429043, band: 'b', day_obs: 20230522, physical_filter: 'B'})(astrometry."
+          },
+          {
+            "exposure_id": 85429048,
+            "error": "INFO 2026-07-29T11:33:00.262-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 118 quanta successfully, 127 failed and 313 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429048,
+            "error": "INFO 2026-07-29T11:33:02.613-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 119 quanta successfully, 127 failed and 312 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429046,
+            "error": "INFO 2026-07-29T11:33:04.494-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 120 quanta successfully, 127 failed and 311 remain out of total 558 quanta."
+          },
+          {
+            "exposure_id": 85429046,
+            "error": "INFO 2026-07-29T11:33:05.759-04:00 lsst.pipe.base.mp_graph_executor ()(mp_graph_executor.py:826) - Executed 121 quanta successfully, 127 failed and 310 remain out of total 558 quanta."
+          }
+        ],
+        "error": null,
+        "quanta_parse_failed": false
+      },
+      {
+        "config": "2023ixf_relaxed_psfex_sparse.py",
+        "is_fallback": true,
+        "quanta_attempted": 0,
+        "quanta_succeeded": 66,
+        "quanta_failed": 6,
+        "failed_exposures": [],
+        "error": null,
+        "quanta_parse_failed": false
+      }
+    ],
+    "total_exposures": 0,
+    "successful_exposures": 486,
+    "output_collection": "Nickel/runs/20230521/processCcd/20260729T153010Z/run",
+    "timestamp_end": "20260729T153024Z",
+    "started_at": "20260729T153024Z",
+    "ended_at": "20260729T153853Z",
+    "duration_s": 509,
+    "duration_approx": false,
+    "stips_git_sha": "6409ef60df",
+    "stips_git_describe": "v2.0.1-55-g6409ef6",
+    "lsst_stack_version": "lsst-scipipe-12.1.0",
+    "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": "gf03f954c0e+3d14ea8aaf",
+    "rerun_recipe": "stips science 20230521 --config 2023ixf_relaxed.py  # stips @ v2.0.1-55-g6409ef6, gf03f954c0e+3d14ea8aaf  (instrument=nickel)",
+    "repo_size_bytes": 5543952384,
+    "repo_status": "present",
+    "reclaimed_at": null,
     "notes": null
   },
   {
@@ -9308,6 +10052,7 @@
     "stips_git_describe": "e2844af",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20070321 --config 2023ixf_relaxed.py  # stips @ e2844af, lsst-scipipe-12.1.0  (instrument=ctio1m)",
     "repo_size_bytes": 14742925312,
     "repo_status": "present",
@@ -9523,6 +10268,7 @@
     "stips_git_describe": "742438f",
     "lsst_stack_version": "lsst-scipipe-12.1.0",
     "lsst_stack_version_source": "repo-scan",
+    "lsst_pipelines_version": null,
     "rerun_recipe": "stips science 20070321 --config 2023ixf_relaxed.py  # stips @ 742438f, lsst-scipipe-12.1.0  (instrument=ctio1m)",
     "repo_size_bytes": 16833945600,
     "repo_status": "present",

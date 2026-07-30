@@ -272,6 +272,13 @@ _Generated from `provenance/runs.json` by `stips provenance sync`. Do not edit b
 | landolt_validation_repo | 20240905 | science | partial | 354 | — | 7.4 GB | deleted | lsst-scipipe-12.1.0 / 17a8cc3 | `stips science 20240905 --config 2023ixf_relaxed.py  # stips @ 17a8cc3, lsst-scipipe-12.1.0  (instrument=nickel)` |
 | landolt_validation_repo | 20240906 | science | partial | 507 | — | 7.4 GB | deleted | lsst-scipipe-12.1.0 / 17a8cc3 | `stips science 20240906 --config 2023ixf_relaxed.py  # stips @ 17a8cc3, lsst-scipipe-12.1.0  (instrument=nickel)` |
 
+## nickel_smoketest
+
+| repo | night | step | status | succ. exp | duration | size | repo | env | recipe |
+|---|---|---|---|---|---|---|---|---|---|
+| nickel_smoketest_repo | 20230519 | science | partial | 447 | 473s | 2.0 GB | present | gf03f954c0e+3d14ea8aaf / v2.0.1-55-g6409ef6 | `stips science 20230519 --config 2023ixf_relaxed.py  # stips @ v2.0.1-55-g6409ef6, gf03f954c0e+3d14ea8aaf  (instrument=nickel)` |
+| nickel_smoketest_repo | 20230521 | science | partial | 486 | 509s | 5.5 GB | present | gf03f954c0e+3d14ea8aaf / v2.0.1-55-g6409ef6 | `stips science 20230521 --config 2023ixf_relaxed.py  # stips @ v2.0.1-55-g6409ef6, gf03f954c0e+3d14ea8aaf  (instrument=nickel)` |
+
 ## pg1047_repo
 
 | repo | night | step | status | succ. exp | duration | size | repo | env | recipe |
@@ -281,7 +288,7 @@ _Generated from `provenance/runs.json` by `stips provenance sync`. Do not edit b
 
 ## Totals
 
-- Runs recorded: 182
-- Repos: 20
-- On-disk (present repos): 138.2 GB
-- Tracked total (incl. reclaimed): 477.0 GB
+- Runs recorded: 184
+- Repos: 21
+- On-disk (present repos): 143.7 GB
+- Tracked total (incl. reclaimed): 482.6 GB
