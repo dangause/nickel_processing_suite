@@ -9,7 +9,6 @@ import logging
 import numpy as np
 import pytest
 from astropy.io import fits
-
 from stips.pipeline_tools.external_template import imaging
 
 LOG = logging.getLogger(__name__)
