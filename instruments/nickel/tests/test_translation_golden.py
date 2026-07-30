@@ -151,6 +151,45 @@ class TestTranslationGoldenScience(unittest.TestCase):
         self.assertEqual(self.tr.to_observation_id(), "20240625_1032")
 
 
+class TestTranslationLargeObsnum(unittest.TestCase):
+    """Real 2023ixf frame: OBSNUM is an observatory-wide running counter.
+
+    NEW coverage, not a change to the legacy literals above. ``d228001.fits``
+    from night 20230519 (UT day 20230520) is verbatim from
+    ``/Users/dangause/Developer/lick/data``; before the OBSNUM fold this header
+    could not be translated at all (``seqnum 228001 is out of range``), which is
+    why no golden value for it existed.
+    """
+
+    def setUp(self):
+        self.tr = NickelTranslator(
+            dict(
+                SCIENCE_HEADER,
+                OBSNUM=228001,
+                EXPTIME=0,
+                OBJECT="bias",
+                **{
+                    "DATE-BEG": "2023-05-20T01:30:36.40",
+                    "DATE-END": "2023-05-20T01:30:36.43",
+                },
+            )
+        )
+
+    def test_day_obs(self):
+        self.assertEqual(self.tr.to_observing_day(), 20230520)
+
+    def test_exposure_id_folds_obsnum(self):
+        # days_since_2000(2023-05-20) == 8540; 228001 % 10000 == 8001
+        self.assertEqual(self.tr.to_exposure_id(), 85408001)
+
+    def test_visit_id_tracks_exposure_id(self):
+        self.assertEqual(self.tr.to_visit_id(), 85408001)
+
+    def test_observation_id_keeps_full_obsnum(self):
+        # Traceable back to the source file d228001.fits — see the profile hook.
+        self.assertEqual(self.tr.to_observation_id(), "20230520_228001")
+
+
 class TestTranslationGoldenCalib(unittest.TestCase):
     """Pin current translator outputs for the calibration (flat) header."""
 

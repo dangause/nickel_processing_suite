@@ -301,6 +301,109 @@ def run(config_file: Path, config: Config, dry_run: bool) -> RunResult:
     lightcurve.run(...)
 ```
 
+### 6. External-Template Source Framework
+
+DIA templates can come from an external sky survey (PS1, SkyMapper) instead of
+a same-instrument coadd. The framework splits into three layers so that
+survey-specific fetch logic stays out of the LSST-dependent conversion code,
+and both stay out of the CLI/orchestration layer:
+
+```
+packages/stips/src/stips/pipeline_tools/external_template/
+├── imaging.py            # astropy-only helpers; importable in the plain venv
+├── core.py               # the ONE module here allowed to import lsst at
+│                          #   module scope — executes only inside the stack,
+│                          #   via ingest.py
+├── ingest.py              # in-stack CLI entry: --source <name> --ra --dec ...
+└── sources/
+    ├── base.py            # the TemplateSource protocol
+    ├── ps1.py             # PS1 adapter
+    └── skymapper.py       # SkyMapper adapter
+```
+
+- **`imaging.py`** — zeropoint-to-calibration-mean conversion, cutout-size
+  clamping. No `lsst` import; used by adapters and unit tests alike.
+- **`core.py`** — the FITS → LSST `ExposureF` conversion, WCS handling
+  (`makeSkyWcs`), reprojection onto the skymap, and Butler ingest. This is the
+  one module in the package that imports `lsst` at module scope, and it only
+  ever runs inside the activated stack (invoked via `ingest.py`, mirroring the
+  `run_with_stack()` / snippet-returns-JSON pattern used elsewhere in STIPS).
+- **`sources/`** — one thin adapter per survey. **Adapters must not import
+  `lsst`** — an AST scan (`test_adapters_do_not_import_lsst` in
+  `packages/stips/tests/test_skymapper_source.py`) enforces this at the source
+  level (not just at import time), so a function-scoped `lsst` import inside an
+  adapter fails the test suite too.
+
+Each adapter implements the `TemplateSource` protocol
+(`sources/base.py`):
+
+| Member | Purpose | PS1 | SkyMapper |
+|---|---|---|---|
+| `name` | Registry key and collection namespace (`templates/<name>/<band>`) | `"ps1"` | `"skymapper"` |
+| `max_cutout_deg` | Hard service limit on cutout size, or `None` if unlimited | `None` | `0.17` |
+| `zeropoint_keywords` | FITS header cards to try, in order, for the zeropoint | `["ZPT", "FPA.ZP", "MAGZERO", "MAGZPT"]` | `["ZPAPPROX"]` |
+| `band_map(config)` | LOCAL science band → this survey's band name | `profile.ps1_band_map` | `profile.template_band_maps["skymapper"]` |
+| `default_zeropoint(header)` | Fallback AB zeropoint when no header card is present | per-filter table | per `image_type` (`main` ≈ 28.75, `short` ≈ 25.4) |
+| `native_fwhm(header)` | Seeing FWHM in arcsec for this specific frame | constant 1.2″ | reads `QAFWHM` from the frame |
+| `fetch(ra, dec, src_band, size_deg, out_dir, **kw)` | Download a cutout; return its `Path` | MAST → fitscut → ps1filenames (3 fallbacks) | SIA `query` → frame selection → `get_image` |
+| `fetch_validates_cutout` | True only when `fetch` itself already ran the coverage/size validators | `True` | `False` |
+
+`fetch` **raises** `TemplateSourceError` rather than returning `None` on
+failure — a falsy return is how a "no usable frames" condition would otherwise
+degrade into an opaque downstream Butler error instead of an actionable
+message.
+
+After `fetch` returns, `ingest.py` validates the file for **every** source
+(`imaging.validate_cutout`): an adapter's byte-count floor only proves the
+response was not an error page, while an edge-trimmed survey frame is a
+perfectly well-formed FITS that misses the target or leaves no DIA overlap
+margin. PS1 sets `fetch_validates_cutout = True` because its per-method checks
+are what decide whether to fall through to the next download method, so it is
+not re-validated. Validation compares against the **post-clamp** size
+(`imaging.effective_cutout_size`), or a source with a service cap would reject
+its own successful fetch.
+
+`ingest.py` also passes the active profile's `fov_arcmin` into `fetch`, which is
+what lets an adapter warn that its cutout cannot cover the science field (the
+`NoKernelCandidatesError` cascade). Profiles that do not declare a FOV pass
+`None` and the warning stays silent.
+
+**Adding a new survey** (e.g. a future DECam Legacy Surveys / DES adapter):
+
+1. Implement the `TemplateSource` protocol in a new `sources/<name>.py` (no
+   `lsst` imports).
+2. Register it in `sources/__init__.py`'s `SOURCES` dict.
+3. Add a `template_band_maps["<name>"]` entry to any instrument profile that
+   should offer it (see `docs/forking-stips.md`).
+
+Nothing else changes. Everything downstream reads the `SOURCES` registry rather
+than a literal list: `core.py` and `ingest.py` are source-agnostic, the `stips
+external-template` CLI's `--source` choices, `dia.find_template()`'s
+explicit-collection glob list, `run.py`'s `template.type` dispatch, and the set
+of `template.type` values `RunConfig` accepts are all derived from it. (An
+unrecognised `template.type` is rejected when the YAML is parsed, naming the
+valid values, rather than silently building no template and failing every band
+in DIA hours later.)
+
+One deliberate exception: `dia.find_template()`'s `strategy == "auto"` branch
+resolves **PS1 by name** and is not registry-driven. Auto-selecting a template
+shallower and blurrier than the science produces plausible-but-wrong difference
+images, and a future adapter is no safer by default, so a new source is
+reachable only via explicit `--template` / `template.type`. Two tests pin this.
+
+**SkyMapper is deliberately Tier-2 and explicit-only.** Its DR4 cutouts are
+single-epoch (100 s `main` frames only; 5 s `short` frames rejected), capped at
+0.17° (10.2′, smaller than the Y4KCam ~20′ FOV), and not reliably sharper than
+the science (`subtractImages_skymapper.py` uses `mode = "auto"` rather than the
+PS1 config's hardcoded `convolveTemplate`). `template.type: auto` never selects
+it — a fork must set `template.type: skymapper` explicitly, and only after
+confirming no SN-free epochs exist for a same-instrument coadd. Validation on
+NGC2298 measured **51% recall at ~30% purity within the template footprint**,
+which covers only ~16% of a Y4KCam field
+(`docs/skymapper-template-validation.md`). See the
+"Southern fields have no PS1 coverage" gotcha in `CLAUDE.md` for the full
+verified-limits list.
+
 ## Butler Collection Structure
 
 ```

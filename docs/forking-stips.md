@@ -242,6 +242,40 @@ These are the real `InstrumentProfile` fields (from
   Nickel maps only its `{"r": "r", "i": "i"}`; a Sloan fork could add
   `{"g": "g"}`. The default (empty dict) means **no PS1 templates** — the safe
   choice for an unknown fork, which then uses coadd templates for every band.
+- **`template_band_maps`** — Per-source external-template band policy: `SOURCE
+  NAME -> (LOCAL band -> that survey's band)`, e.g.
+  `{"skymapper": {"r": "r", "i": "i"}}`. This is **separate** from
+  `ps1_band_map` above and does not replace it: `ps1_band_map` is also exported
+  as `STIPS_PS1_BAND_MAP` (JSON) by `run_with_stack()` and consumed by the
+  in-stack `refcats_gaia_ps1*.py` pex_config overlays to build the PS1
+  reference-catalog filterMap, so it cannot be renamed or folded into the
+  generic map without breaking that consumer. For `source="ps1"`,
+  `template_band_map(config, "ps1")` (`stips.core.pipeline`) checks
+  `template_band_maps["ps1"]` first and falls back to `ps1_band_map` when no
+  entry exists — so a profile written before `template_band_maps` existed keeps
+  working untouched. Add a new survey by giving it its own key here; you do
+  not need to touch `ps1_band_map` to do so.
+
+  **Band maps are not identity maps — worked example.** The CTIO 1.0m profile
+  (`instruments/ctio1m/profile.py`) is Johnson-Cousins (`U`/`B`/`V`/`R`/`I`).
+  SkyMapper's `v` filter is a Strömgren-like **violet band at ~384 nm** — not
+  Johnson V (~551 nm). An identity map (`"v": "v"`) would silently fetch a
+  near-UV template for a green science image. CTIO's map is therefore
+  `{"skymapper": {"r": "r", "i": "i"}}` — `v` is **deliberately excluded**
+  rather than mismapped, because the honest match (SkyMapper `g` at ~510 nm)
+  needs a colorterm nobody has fit yet. Treat every entry in a
+  `template_band_maps` map as a claim that needs its own justification, not a
+  name-matching exercise.
+- **`fov_arcmin`** — Approximate science field of view in **arcmin** (the long
+  dimension is fine; this is an order-of-magnitude figure, not geometry). Its
+  only consumer is the external-template coverage warning: a survey cutout
+  narrower than the science field leaves dithered pointings with no PSF-matching
+  kernel candidates (`NoKernelCandidatesError`), and SkyMapper's hard 0.17°
+  (10.2′) cap is under the FOV of most 1-m-class cameras. Nickel declares `6.3`,
+  CTIO 1.0m / Y4KCam `20.0`. Camera geometry is deliberately not used as a
+  substitute (binning and partial illumination make it unreliable). Leave it
+  unset if you have not measured it — the warning then stays silent rather than
+  asserting a field size STIPS guessed.
 - **`fetch_data`** — Optional callable hook: `fetch_data(night, config, *,
   overwrite=False) -> "ok" | "not_found" | "failed"`, used by `stips download`.
   Wire it from a co-located module (Nickel's `profile.py` does `from fetch import
@@ -279,6 +313,19 @@ logic beyond a flat `header_map` lookup. The hooks Nickel actually defines:
   `stips.pack_exposure_id(days_since_2000, seqnum)` instead — see
   `instruments/ctio1m/profile.py`. This only bites on multi-night ingest, so
   single-night testing will not surface it.
+
+  The *other* way this goes wrong: your sequence keyword may be wider than the
+  packed id's 4-digit sequence field. Nickel's `OBSNUM` is an observatory-wide
+  running counter, not a per-night sequence, and once it passed 10,000 (in 2020)
+  every frame failed ingest with `seqnum ... is out of range [0, 10000)`. Fold it
+  (`OBSNUM % 10000`) — the fold is the identity below the modulus, so ids already
+  in a repo are untouched. **Check the span, not just the magnitude:** the fold is
+  injective only within one 10,000-wide window, so it is safe as long as a single
+  day spans less than that (a Nickel night spans a few hundred). Two frames on one
+  day whose counters differ by an exact multiple of the modulus alias, and no
+  single-header hook can detect that; `stips calibs` runs
+  `stips.core.pipeline.find_aliasing_exposure_ids()` over the night before ingest
+  and aborts naming the files if it ever happens.
 - **`datetime_begin(header)` / `datetime_end(header)`** — Nickel prefers
   `DATE-BEG`/`DATE-END`, falls back to `DATE-OBS`, and synthesizes the end from
   `begin + EXPTIME` when `DATE-END` is missing or bad.

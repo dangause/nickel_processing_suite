@@ -119,5 +119,24 @@ class TestTemplateCollections(unittest.TestCase):
         self.assertEqual(template_deep("<TBD>", "r"), "templates/deep/tract<TBD>/r")
 
 
+def test_template_external_collection_name():
+    from stips.collections import template_external
+
+    assert template_external("skymapper", "i") == "templates/skymapper/i"
+    assert template_external("ps1", "r") == "templates/ps1/r"
+
+
+def test_template_external_glob():
+    from stips.collections import template_external_glob
+
+    assert template_external_glob("skymapper") == "templates/skymapper/*"
+
+
+def test_template_ps1_is_the_generic_builder_pinned_to_ps1():
+    from stips.collections import template_external, template_ps1
+
+    assert template_ps1("i") == template_external("ps1", "i")
+
+
 if __name__ == "__main__":
     unittest.main()

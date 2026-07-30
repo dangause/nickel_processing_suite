@@ -116,6 +116,10 @@ class _FakeProfile:
 
 
 class _FakeConfig:
+    # No profile -> the pre-ingest aliasing scan has nothing to audit and
+    # reports the night clean (see find_aliasing_exposure_ids).
+    profile = None
+
     def __init__(self, repo):
         self.repo = repo
 

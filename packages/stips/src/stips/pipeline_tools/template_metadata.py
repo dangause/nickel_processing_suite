@@ -32,6 +32,27 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+#: Sentinel meaning "this template is an external survey product, not a date
+#: range of our own observations". Historically the literal "PS1" (still
+#: emitted for that source, so existing recorded metadata stays consistent);
+#: "EXTERNAL" is the source-agnostic form emitted for every other external
+#: survey (e.g. SkyMapper).
+EXTERNAL_DATE_SENTINELS = {"PS1", "EXTERNAL"}
+
+#: Internal (non-adapter) source values, not registered in the external-survey
+#: adapter registry: "nickel" (our own coadd templates) and "hybrid".
+_INTERNAL_SOURCES = ("nickel", "hybrid")
+
+
+def _source_choices() -> list[str]:
+    """Valid ``--source`` values: internal sources plus every registered
+    external-survey adapter (e.g. "ps1", "skymapper"), so a new adapter
+    (Task 5+) is automatically accepted here without a framework edit.
+    """
+    from stips.pipeline_tools.external_template.sources import SOURCES
+
+    return [*_INTERNAL_SOURCES, *sorted(SOURCES)]
+
 
 class TemplateMetadata:
     """Manager for template metadata including date ranges."""
@@ -95,8 +116,12 @@ class TemplateMetadata:
         ps1_cutout_size : float, optional
             PS1 cutout size (degrees)
         """
-        # Validate dates (skip validation for PS1 templates)
-        if start_date != "PS1" and end_date != "PS1":
+        # Validate dates (skip validation for external-survey templates, which
+        # carry a sentinel instead of a real observation date range).
+        if (
+            start_date not in EXTERNAL_DATE_SENTINELS
+            and end_date not in EXTERNAL_DATE_SENTINELS
+        ):
             try:
                 start = datetime.strptime(start_date, "%Y%m%d")
                 end = datetime.strptime(end_date, "%Y%m%d")
@@ -116,9 +141,14 @@ class TemplateMetadata:
             "source": source,
         }
 
-        # Add PS1-specific metadata if applicable
-        if source == "ps1" or ps1_filter:
-            template_meta["ps1"] = {
+        # Add external-survey geometry metadata if applicable, filed under the
+        # ACTUAL source name (not a hardcoded "ps1") so a SkyMapper template
+        # isn't recorded as if it were PS1. "ps1" and "hybrid" reproduce the
+        # historical decision boundary (source == "ps1", or any source when
+        # ps1_filter is given); every other external source (e.g. skymapper)
+        # gets its own geometry key even without an explicit ps1_filter.
+        if source not in ("nickel", "hybrid") or ps1_filter:
+            template_meta[source] = {
                 "filter": ps1_filter,
                 "ra": ps1_ra,
                 "dec": ps1_dec,
@@ -249,17 +279,21 @@ class TemplateMetadata:
             if meta.get("tract"):
                 print(f"  Tract: {meta['tract']}")
 
-            # PS1-specific info
-            if "ps1" in meta and meta["ps1"]:
-                ps1_info = meta["ps1"]
-                if ps1_info.get("filter"):
-                    print(f"  PS1 filter: {ps1_info['filter']}")
-                if ps1_info.get("ra") and ps1_info.get("dec"):
+            # External-survey geometry info, filed under the source name
+            # (e.g. "ps1", "skymapper") rather than a hardcoded "ps1" key.
+            survey_info = meta.get(source)
+            if survey_info:
+                if survey_info.get("filter"):
+                    print(f"  {source} filter: {survey_info['filter']}")
+                if survey_info.get("ra") and survey_info.get("dec"):
                     print(
-                        f"  PS1 position: RA={ps1_info['ra']:.4f}, Dec={ps1_info['dec']:.4f}"
+                        f"  {source} position: RA={survey_info['ra']:.4f}, "
+                        f"Dec={survey_info['dec']:.4f}"
                     )
-                if ps1_info.get("cutout_size_deg"):
-                    print(f"  PS1 cutout size: {ps1_info['cutout_size_deg']:.3f} deg")
+                if survey_info.get("cutout_size_deg"):
+                    print(
+                        f"  {source} cutout size: {survey_info['cutout_size_deg']:.3f} deg"
+                    )
 
             if meta.get("description"):
                 print(f"  Description: {meta['description']}")
@@ -299,7 +333,7 @@ def main():
     record_parser.add_argument(
         "--source",
         default="nickel",
-        choices=["nickel", "ps1", "hybrid"],
+        choices=_source_choices(),
         help="Template source (default: nickel)",
     )
     record_parser.add_argument(
@@ -334,7 +368,7 @@ def main():
     )
     list_parser.add_argument(
         "--source",
-        choices=["nickel", "ps1", "hybrid"],
+        choices=_source_choices(),
         help="Filter by template source",
     )
 

@@ -165,3 +165,21 @@ def test_translator_synthesis_contract(instrument, contract_data):
         assert tr.to_visit_id() == expected["visit_id"]
         assert tr.to_observation_type() == expected["observation_type"]
         assert tr.to_observation_id() == expected["observation_id"]
+
+
+# --------------------------------------------------------------------------- #
+# Reference-instrument pins
+# --------------------------------------------------------------------------- #
+
+#: Approximate science field of view, arcmin. Consumed by the external-template
+#: adapters to warn when a survey cutout cannot cover the science footprint
+#: (SkyMapper caps at 10.2', well under Y4KCam's ~20'). Pinned here because the
+#: warning is unreachable — and its documented mitigation false — if a reference
+#: profile stops declaring it.
+REFERENCE_FOV_ARCMIN = {"nickel": 6.3, "ctio1m": 20.0}
+
+
+def test_reference_profiles_declare_fov_arcmin(instrument, profile):
+    if instrument.name not in REFERENCE_FOV_ARCMIN:
+        pytest.skip(f"{instrument.name}: not a reference instrument")
+    assert profile.fov_arcmin == pytest.approx(REFERENCE_FOV_ARCMIN[instrument.name])

@@ -12,6 +12,7 @@ from stips.core.pipeline import (
     CollectionNames,
     PipetaskStage,
     ensure_instrument_registered,
+    find_aliasing_exposure_ids,
     get_raw_dir,
     isr_config_args,
     night_to_date_range,
@@ -212,6 +213,33 @@ def run(
             cp_bias=cols.cp_bias,
             cp_flat=cols.cp_flat,
             error="CP_PIPE_DIR not configured",
+        )
+
+    # Pre-ingest: no two frames in this night may claim the same exposure_id.
+    # Profiles whose raw sequence keyword is wider than the packed id's sequence
+    # field fold it into range (Nickel folds OBSNUM % 10000), and a fold can
+    # alias. This is the only layer that sees the whole night, so it is the only
+    # one that can catch it — see find_aliasing_exposure_ids().
+    collisions = find_aliasing_exposure_ids(config, night)
+    if collisions:
+        detail = "; ".join(
+            f"exposure_id {exp_id} claimed by "
+            + ", ".join(f"{name} ({obs_id})" for name, obs_id in frames)
+            for exp_id, frames in sorted(collisions.items())
+        )
+        return CalibsResult(
+            success=False,
+            night=night,
+            raw_run=cols.raw_run,
+            calib_chain=cols.calib_chain,
+            cp_bias=cols.cp_bias,
+            cp_flat=cols.cp_flat,
+            error=(
+                f"Colliding exposure_ids in {night}: {detail}. Ingesting these "
+                "would silently collapse distinct frames onto one exposure. "
+                "Move the offending frames out of the night's raw dir, or widen "
+                "the profile's exposure_id scheme."
+            ),
         )
 
     try:

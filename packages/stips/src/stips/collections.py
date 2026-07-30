@@ -16,14 +16,32 @@ def generate_run_timestamp() -> str:
 # module-level builders centralize the spelling without threading a prefix.
 
 
+def template_external(source: str, band: str) -> str:
+    """External-survey template collection (e.g. ``templates/skymapper/i``).
+
+    ``source`` is a ``TemplateSource`` registry key. Callers that iterate the
+    registry use this rather than spelling the f-string at each site.
+    """
+    return f"templates/{source}/{band}"
+
+
+def template_external_glob(source: str) -> str:
+    """Glob matching all template collections from one external survey."""
+    return f"templates/{source}/*"
+
+
 def template_ps1(band: str) -> str:
-    """PS1 external-template collection for ``band`` (e.g. ``templates/ps1/r``)."""
-    return f"templates/ps1/{band}"
+    """PS1 external-template collection for ``band`` (e.g. ``templates/ps1/r``).
+
+    PS1 keeps a named builder because it is the one external source the ``auto``
+    template strategy resolves by name (see ``dia.find_template``).
+    """
+    return template_external("ps1", band)
 
 
 def template_ps1_glob() -> str:
     """Glob matching all PS1 template collections."""
-    return "templates/ps1/*"
+    return template_external_glob("ps1")
 
 
 def template_deep(tract: int | str, band: str) -> str:

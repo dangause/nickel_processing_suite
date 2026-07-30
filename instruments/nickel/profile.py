@@ -61,6 +61,8 @@ profile = InstrumentProfile(
     # (Cousins R/I) map to PS1 r/i. b/v have no PS1 equivalent and fall back to
     # coadd templates in "auto" mode. This reproduces the historical r/i policy.
     ps1_band_map={"r": "r", "i": "i"},
+    # The Nickel direct-imaging camera covers ~6.3' (2048 px at 0.37"/px).
+    fov_arcmin=6.3,
     header_map={
         "exposure_time": Field("EXPTIME", unit="s", default=0.0),
         "dark_time": Field("EXPTIME", unit="s", default=0.0),
@@ -190,14 +192,51 @@ def temperature(header):
     return (temp_celsius + 273.15) * u.K
 
 
+# Width of the sequence field in the packed exposure id (see
+# ``stips.pack_exposure_id``: ``id = days_since_2000 * 10000 + seqnum``).
+_SEQ_MODULUS = 10000
+
+
 @hook(profile)
 def exposure_id(header):
     """Unique exposure/visit ID that fits in 31 bits.
 
-    ID = (days_since_2000 * 10000) + OBSNUM
+    ID = (days_since_2000 * 10000) + (OBSNUM % 10000)
+
+    Nickel's ``OBSNUM`` is an observatory-wide RUNNING counter, not a per-night
+    sequence number: it does not reset at the start of a night and it crossed
+    10,000 somewhere between 2018 and 2020 (20180502 runs 100-28216; 20201207
+    runs 12001-12154; 20230519 runs 228001-228176). ``pack_exposure_id`` only
+    accepts a 4-digit sequence, so passing the raw OBSNUM made EVERY frame from
+    2020 onward -- i.e. all of the 2020wnt and 2023ixf campaigns -- fail ingest
+    with "seqnum ... is out of range [0, 10000)". Folding OBSNUM into the field
+    width is what makes that data ingestable.
+
+    Why the fold is safe:
+
+    - For OBSNUM < 10000 it is the identity, so every id that already exists is
+      unchanged (pinned by the golden suite: OBSNUM 1032 on 2024-06-25 ->
+      89421032). No repo migration is needed, and none could be: OBSNUM >= 10000
+      could not be ingested at all before, so no existing Butler repo can hold
+      such an exposure.
+    - It stays injective within any 10,000-wide window of OBSNUM, and a Nickel
+      night spans a few hundred (176 frames on 20230519, 161 on 20230521), so ids
+      remain unique -- and consecutive -- within a night. A night that merely
+      crosses a multiple of 10,000 is fine; only a night spanning >= 10,000 in
+      OBSNUM could alias.
+
+    Residual hazard, and where it is caught: two frames on the SAME UT day whose
+    OBSNUMs differ by an exact multiple of 10,000 fold to the same id. This hook
+    cannot detect that -- it is handed one header at a time and holds no state
+    across frames -- and ``pack_exposure_id``'s range guard cannot either, since
+    the folded value is in range by construction. Detection therefore lives at
+    the only layer that sees a whole night at once: the pre-ingest scan
+    ``stips.core.pipeline.find_aliasing_exposure_ids()``, which ``stips calibs``
+    runs over the night's headers and which aborts, naming the offending files,
+    rather than letting two frames collapse onto one exposure.
     """
     obsnum = int(header["OBSNUM"])
-    return make_exposure_id(_datetime_end(header), obsnum)
+    return make_exposure_id(_datetime_end(header), obsnum % _SEQ_MODULUS)
 
 
 @hook(profile)
@@ -225,7 +264,23 @@ def day_obs(header):
 
 @hook(profile)
 def observation_id(header):
-    """String ID that must be globally unique for the instrument."""
+    """String ID that must be globally unique for the instrument.
+
+    Deliberately carries the FULL, un-folded OBSNUM, unlike
+    :func:`exposure_id`. This is a string and is stored in Butler's ``obs_id``
+    column, so it is not subject to the 31-bit / 4-digit-sequence limit that
+    forces the fold there. Two reasons to keep it whole:
+
+    1. Traceability: "20230520_228001" names the source frame ``d228001.fits``
+       exactly; a folded "20230520_8001" would not.
+    2. It is what makes a folded exposure_id alias *detectable*. Butler's
+       ``exposure`` dimension carries a unique alternate key on ``obs_id``
+       alongside the ``id`` primary key, so two aliasing frames produce two
+       records with the same ``id`` and different ``obs_id`` -- a conflicting
+       definition -- instead of a matching pair that could merge unnoticed.
+       (That is a backstop, not the primary guard; the primary guard is the
+       pre-ingest scan named in :func:`exposure_id`.)
+    """
     return f"{_day_obs(header):08d}_{int(header.get('OBSNUM', 0))}"
 
 
