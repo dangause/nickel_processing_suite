@@ -30,6 +30,10 @@ class TemplateSource(Protocol):
     max_cutout_deg: float | None
     #: FITS header cards to try, in order, when reading the zeropoint.
     zeropoint_keywords: list[str]
+    #: FITS header cards to try, in order, for the detector saturation level.
+    #: Empty for sources whose frames cannot saturate (deep stacks), which
+    #: makes saturation masking a no-op for them.
+    saturation_keywords: list[str]
     #: True when ``fetch`` already ran the coverage/size validators on the file
     #: it returns, so the ingest entry point must not repeat them. Only set this
     #: when validation is structurally part of the fetch (PS1 needs it to decide

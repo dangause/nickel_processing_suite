@@ -57,6 +57,161 @@ def clamp_cutout_size(requested_deg: float, max_deg: float | None, logger=log) -
     return max_deg
 
 
+def decode_asinh_scaling(data, header, *, logger=log):
+    """Undo asinh (Lupton) pixel compression, if the header declares it.
+
+    Pan-STARRS1 stack images are stored asinh-compressed::
+
+        stored = (2.5 / ln10) * asinh((flux - BOFFSET) / (2 * BSOFTEN))
+
+    so the inverse this applies is::
+
+        flux = BOFFSET + BSOFTEN * 2 * sinh(stored * ln10 / 2.5)
+
+    Reading the stored values as linear flux crushes a ~1e6:1 dynamic range
+    down to ~10:1. Because asinh is very nearly linear near sky, the damage is
+    invisible on faint sources -- the DIA kernel simply absorbs the constant
+    scale factor -- but it grows with brightness, leaving progressively larger
+    POSITIVE residuals at bright stars and, in turn, spurious DIA detections.
+
+    Only some fetch paths hit this. The PS1 fitscut service returns decoded,
+    linear pixels and strips BSOFTEN, whereas downloading a stack file
+    straight from the archive (the MAST and ps1filenames paths) yields the raw
+    compressed pixels. Keying off BSOFTEN handles both without the caller
+    needing to know which path produced the file.
+
+    Returns:
+        ``(data, decoded)`` -- the linear-flux array, and whether any
+        transform was applied. ``data`` is returned untouched when the header
+        declares no usable softening.
+    """
+    if "BSOFTEN" not in header:
+        return data, False
+
+    try:
+        bsoften = float(header["BSOFTEN"])
+        boffset = float(header.get("BOFFSET", 0.0))
+    except (TypeError, ValueError):
+        logger.warning(
+            "BSOFTEN/BOFFSET are present but not numeric; leaving pixels as-is"
+        )
+        return data, False
+
+    if not (np.isfinite(bsoften) and bsoften > 0):
+        logger.warning(
+            "BSOFTEN=%r is not a usable softening parameter; leaving pixels as-is",
+            bsoften,
+        )
+        return data, False
+
+    decoded = boffset + bsoften * 2.0 * np.sinh(
+        np.asarray(data, dtype=np.float64) * np.log(10.0) / 2.5
+    )
+    logger.info(
+        "Decoded asinh pixel scaling (BSOFTEN=%.6g, BOFFSET=%.6g); "
+        "pixel range %.4g -> %.4g",
+        bsoften,
+        boffset,
+        _finite_span(data),
+        _finite_span(decoded),
+    )
+    return decoded, True
+
+
+#: Fraction of the declared saturation level at which a pixel counts as
+#: saturated. Detectors clip slightly below the card value -- SkyMapper
+#: declares ``SATURATE = 65435`` but real cores pin at 64539, i.e. 98.6% -- and
+#: the approach to the ceiling is already non-linear, so the threshold sits
+#: below both.
+SATURATION_FRACTION = 0.9
+
+#: Pixels to grow the saturated footprint by. Saturation does not stop at the
+#: clipped pixels: charge bleeds into neighbours and the frames carry negative
+#: undershoot right against the cores (-97 next to a 64539 core on SkyMapper),
+#: which pushes a difference image the WRONG way if left unmasked.
+SATURATION_GROW_PIX = 2
+
+
+def saturation_mask(
+    data,
+    header,
+    keywords,
+    *,
+    fraction=SATURATION_FRACTION,
+    grow=SATURATION_GROW_PIX,
+    logger=log,
+):
+    """Boolean mask of saturated pixels, grown to cover bleed artifacts.
+
+    Survey frames that are single exposures rather than deep stacks reach the
+    detector ceiling on bright stars. A clipped core under-represents the star,
+    so the template is too faint there and the difference keeps a large POSITIVE
+    residual -- indistinguishable, to the detection stage, from a transient.
+
+    ``keywords`` is adapter-supplied and ordered; a source that cannot saturate
+    (a deep coadd, say) passes an empty list and this becomes a no-op.
+
+    Returns:
+        ``(mask, level)`` -- the boolean mask, and the flux level above which a
+        pixel was called saturated (``None`` when no usable card was found, in
+        which case the mask is all-False).
+    """
+    data = np.asarray(data)
+    empty = np.zeros(data.shape, dtype=bool)
+
+    card = next((k for k in keywords if k in header), None)
+    if card is None:
+        return empty, None
+
+    try:
+        saturate = float(header[card])
+    except (TypeError, ValueError):
+        logger.warning(
+            "Saturation card %s=%r is not numeric; not masking saturation",
+            card,
+            header[card],
+        )
+        return empty, None
+
+    if not (np.isfinite(saturate) and saturate > 0):
+        logger.warning(
+            "Saturation card %s=%r is not a usable level; not masking saturation",
+            card,
+            saturate,
+        )
+        return empty, None
+
+    level = fraction * saturate
+    with np.errstate(invalid="ignore"):
+        mask = np.isfinite(data) & (data >= level)
+
+    n_clipped = int(mask.sum())
+    if n_clipped and grow > 0:
+        from scipy.ndimage import binary_dilation
+
+        mask = binary_dilation(mask, iterations=int(grow))
+
+    if n_clipped:
+        logger.info(
+            "Masked saturation: %d pixels at/above %.6g (%s=%.6g x %.2f), "
+            "%d after growing by %d px",
+            n_clipped,
+            level,
+            card,
+            saturate,
+            fraction,
+            int(mask.sum()),
+            grow,
+        )
+    return mask, level
+
+
+def _finite_span(data):
+    """Peak-to-peak of the finite pixels, for the decode log line."""
+    finite = np.asarray(data)[np.isfinite(data)]
+    return float(finite.max() - finite.min()) if finite.size else float("nan")
+
+
 def find_first_image_hdu(hdul):
     """Return the first HDU holding 2-D image data."""
     for hdu in hdul:

@@ -534,6 +534,22 @@ DIA kernel must absorb a ~363× flux ratio on top of PSF matching, causing
 numerical instability and unreliable kernel sums. After re-ingesting templates,
 rerun existing DIA results.
 
+### PS1 stack pixels are asinh-compressed
+PS1 stores stack pixels asinh-scaled (`BSOFTEN`/`BOFFSET` in the header):
+`flux = BOFFSET + BSOFTEN·2·sinh(stored·ln10/2.5)`. `imaging.decode_asinh_scaling()`
+applies the inverse inside `fits_to_lsst_exposure()`, keyed off `BSOFTEN`, so it
+covers every download path and any future source using the convention. Only the
+`fitscut` service hands back decoded pixels (and strips `BSOFTEN`); the MAST and
+`ps1filenames` paths return the raw compressed stack.
+
+Symptom when it is missing: subtraction quality that degrades with source
+brightness — faint stars subtract cleanly (asinh is near-linear at sky, so the
+kernel absorbs the constant scale) while bright stars leave large POSITIVE
+residuals, plus kernel-candidate starvation (`NoKernelCandidatesError`) because
+the template's bright stars are suppressed. Do not mistake this for template
+saturation. Check with `TEMPLATE_ASINH_DECODED` in the ingested template's
+metadata, or look for `BSOFTEN` in the cached cutout.
+
 ### Nickel coadd template contamination
 Building Nickel coadd templates from epochs where the SN is still active bakes SN
 flux into the template, producing negative/underestimated difference flux. Use

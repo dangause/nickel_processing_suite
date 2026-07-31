@@ -342,6 +342,12 @@ class SkyMapperSource:
     #: 17' template still templates far more of a 20' field than a 10' one.
     max_assembled_deg = CCD_SHORT_AXIS_PX * CCD_PIXEL_SCALE_ARCSEC / 3600.0
     zeropoint_keywords = ["ZPAPPROX"]
+    #: SkyMapper serves single-epoch ~100 s frames, not deep stacks, so bright
+    #: stars DO reach the detector ceiling. Measured on an NGC2298 i-band frame:
+    #: ``SATURATE = 65435`` with cores pinned at 64539 flat-topped over 5+ px,
+    #: negative bleed undershoot (-97) immediately adjacent, and 893 px in 35
+    #: blobs above 0.9x the level. Left unmasked those carry into the template.
+    saturation_keywords = ["SATURATE"]
     #: The SIA download only checks a byte-count floor; coverage/size validation
     #: is the ingest entry point's job (see imaging.validate_cutout).
     fetch_validates_cutout = False
