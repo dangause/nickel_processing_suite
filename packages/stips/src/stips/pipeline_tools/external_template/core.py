@@ -203,6 +203,16 @@ def fits_to_lsst_exposure(
 
         lsst_wcs = convert_astropy_wcs_to_lsst(astropy_wcs)
 
+        # (1a) Linearise the pixels BEFORE anything reads them as flux.
+        # A PS1 stack pulled straight from the archive is asinh-compressed;
+        # only the fitscut service hands back linear pixels. The zeropoint
+        # above describes the DECODED counts, so this has to happen before the
+        # PhotoCalib scaling below (and before the finite check, so a decode
+        # that overflows to inf is caught as BAD rather than silently kept).
+        data, asinh_decoded = imaging.decode_asinh_scaling(
+            data, header if "BSOFTEN" in header else merged
+        )
+
         # NOTE: Do NOT mask negative pixels — sky-subtracted images legitimately
         # have negative values.
         bad_mask = ~np.isfinite(data)
@@ -276,6 +286,7 @@ def fits_to_lsst_exposure(
         metadata = exposure.getMetadata()
         exposure.getInfo().setMetadata(metadata)
         metadata.set("TEMPLATE_SOURCE", source.name)
+        metadata.set("TEMPLATE_ASINH_DECODED", bool(asinh_decoded))
         metadata.set("TEMPLATE_ZEROPOINT", zp)
         metadata.set("TEMPLATE_FWHM_ARCSEC", fwhm_arcsec)
         metadata.set("TEMPLATE_ORIGIN_FILE", str(path))

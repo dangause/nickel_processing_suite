@@ -57,6 +57,73 @@ def clamp_cutout_size(requested_deg: float, max_deg: float | None, logger=log) -
     return max_deg
 
 
+def decode_asinh_scaling(data, header, *, logger=log):
+    """Undo asinh (Lupton) pixel compression, if the header declares it.
+
+    Pan-STARRS1 stack images are stored asinh-compressed::
+
+        stored = (2.5 / ln10) * asinh((flux - BOFFSET) / (2 * BSOFTEN))
+
+    so the inverse this applies is::
+
+        flux = BOFFSET + BSOFTEN * 2 * sinh(stored * ln10 / 2.5)
+
+    Reading the stored values as linear flux crushes a ~1e6:1 dynamic range
+    down to ~10:1. Because asinh is very nearly linear near sky, the damage is
+    invisible on faint sources -- the DIA kernel simply absorbs the constant
+    scale factor -- but it grows with brightness, leaving progressively larger
+    POSITIVE residuals at bright stars and, in turn, spurious DIA detections.
+
+    Only some fetch paths hit this. The PS1 fitscut service returns decoded,
+    linear pixels and strips BSOFTEN, whereas downloading a stack file
+    straight from the archive (the MAST and ps1filenames paths) yields the raw
+    compressed pixels. Keying off BSOFTEN handles both without the caller
+    needing to know which path produced the file.
+
+    Returns:
+        ``(data, decoded)`` -- the linear-flux array, and whether any
+        transform was applied. ``data`` is returned untouched when the header
+        declares no usable softening.
+    """
+    if "BSOFTEN" not in header:
+        return data, False
+
+    try:
+        bsoften = float(header["BSOFTEN"])
+        boffset = float(header.get("BOFFSET", 0.0))
+    except (TypeError, ValueError):
+        logger.warning(
+            "BSOFTEN/BOFFSET are present but not numeric; leaving pixels as-is"
+        )
+        return data, False
+
+    if not (np.isfinite(bsoften) and bsoften > 0):
+        logger.warning(
+            "BSOFTEN=%r is not a usable softening parameter; leaving pixels as-is",
+            bsoften,
+        )
+        return data, False
+
+    decoded = boffset + bsoften * 2.0 * np.sinh(
+        np.asarray(data, dtype=np.float64) * np.log(10.0) / 2.5
+    )
+    logger.info(
+        "Decoded asinh pixel scaling (BSOFTEN=%.6g, BOFFSET=%.6g); "
+        "pixel range %.4g -> %.4g",
+        bsoften,
+        boffset,
+        _finite_span(data),
+        _finite_span(decoded),
+    )
+    return decoded, True
+
+
+def _finite_span(data):
+    """Peak-to-peak of the finite pixels, for the decode log line."""
+    finite = np.asarray(data)[np.isfinite(data)]
+    return float(finite.max() - finite.min()) if finite.size else float("nan")
+
+
 def find_first_image_hdu(hdul):
     """Return the first HDU holding 2-D image data."""
     for hdu in hdul:

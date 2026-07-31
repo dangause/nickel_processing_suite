@@ -122,3 +122,103 @@ def test_validate_cutout_reports_undersized_frame(tmp_path):
     path = _write_fits(tmp_path / "trim.fits", 300, 300)
     reason = imaging.validate_cutout(path, 102.2475, -36.0053, 0.15)
     assert reason and "smaller" in reason
+
+
+# --- asinh (Lupton) pixel scaling -------------------------------------------
+#
+# PS1 stack images store pixels asinh-compressed, with the softening
+# parameters in BSOFTEN/BOFFSET. Reading them as linear flux crushes a ~1e6:1
+# dynamic range down to ~10:1, which subtracts faint stars fine (asinh is
+# linear near sky, and the DIA kernel absorbs the constant scale) while
+# leaving progressively larger POSITIVE residuals at bright stars.
+
+#: Real BSOFTEN/BOFFSET from rings.v3.skycell.2381.052.stk.r.unconv.fits.
+PS1_BSOFTEN = 181.7245144826
+PS1_BOFFSET = 9.203996658325
+
+
+def _ps1_header(bsoften=PS1_BSOFTEN, boffset=PS1_BOFFSET):
+    hdr = fits.Header()
+    if bsoften is not None:
+        hdr["BSOFTEN"] = bsoften
+    if boffset is not None:
+        hdr["BOFFSET"] = boffset
+    return hdr
+
+
+def _encode(flux, bsoften=PS1_BSOFTEN, boffset=PS1_BOFFSET):
+    """The forward asinh transform, for round-trip tests."""
+    return 2.5 / np.log(10.0) * np.arcsinh((flux - boffset) / (2.0 * bsoften))
+
+
+def test_decode_asinh_is_a_no_op_without_bsoften():
+    """A fitscut cutout is already linear and carries no BSOFTEN."""
+    data = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    out, decoded = imaging.decode_asinh_scaling(data, fits.Header())
+    assert decoded is False
+    np.testing.assert_array_equal(out, data)
+
+
+def test_decode_asinh_round_trips_real_ps1_softening():
+    """decode(encode(flux)) recovers the flux across the full dynamic range."""
+    flux = np.array([-500.0, 0.0, 30.0, 1000.0, 5e4, 9e5], dtype=np.float64)
+    out, decoded = imaging.decode_asinh_scaling(_encode(flux), _ps1_header())
+    assert decoded is True
+    np.testing.assert_allclose(out, flux, rtol=1e-6)
+
+
+def test_decode_asinh_zero_maps_to_boffset():
+    """sinh(0) == 0, so a stored zero decodes to exactly BOFFSET."""
+    out, _ = imaging.decode_asinh_scaling(np.zeros((2, 2)), _ps1_header())
+    np.testing.assert_allclose(out, PS1_BOFFSET, rtol=1e-12)
+
+
+def test_decode_asinh_restores_the_crushed_dynamic_range():
+    """The observed PS1 skycell spans [-2.855, 9.467] stored -> ~1e6 in flux.
+
+    This is the bug's signature: read linearly, the brightest star sits only
+    ~10x above sky instead of ~1e6x, so the template under-represents it by
+    orders of magnitude.
+    """
+    stored = np.array([-2.855, 1.0, 9.467])
+    out, _ = imaging.decode_asinh_scaling(stored, _ps1_header())
+    assert out[2] > 1e6
+    assert out[2] / out[1] > 1000
+    # ...whereas the raw stored values differ by less than 10x.
+    assert stored[2] / stored[1] < 10
+
+
+def test_decode_asinh_defaults_boffset_to_zero():
+    """BSOFTEN alone is enough; BOFFSET is an optional additive term."""
+    out, decoded = imaging.decode_asinh_scaling(
+        np.zeros((2, 2)), _ps1_header(boffset=None)
+    )
+    assert decoded is True
+    np.testing.assert_allclose(out, 0.0, atol=1e-12)
+
+
+def test_decode_asinh_preserves_non_finite_pixels():
+    """NaNs must stay NaN so the BAD-mask logic downstream still sees them."""
+    data = np.array([np.nan, np.inf, 1.0])
+    out, _ = imaging.decode_asinh_scaling(data, _ps1_header())
+    assert np.isnan(out[0]) and np.isinf(out[1]) and np.isfinite(out[2])
+
+
+@pytest.mark.parametrize("bad", [0.0, -5.0, "NaN", "not-a-number"])
+def test_decode_asinh_refuses_an_unusable_softening(bad):
+    """A zero/negative/NaN/garbage BSOFTEN is corrupt metadata, not a scaling.
+
+    PS1 headers spell absent numeric values as the *string* ``'NaN'`` (see
+    e.g. ``FPA.FOCUS``), and a FITS header cannot hold a float NaN at all --
+    so the string forms are the ones that actually reach this code.
+    """
+    data = np.array([[1.0, 2.0]])
+    out, decoded = imaging.decode_asinh_scaling(data, _ps1_header(bsoften=bad))
+    assert decoded is False
+    np.testing.assert_array_equal(out, data)
+
+
+def test_decode_asinh_is_monotonic():
+    stored = np.linspace(-3.0, 9.5, 50)
+    out, _ = imaging.decode_asinh_scaling(stored, _ps1_header())
+    assert np.all(np.diff(out) > 0)
