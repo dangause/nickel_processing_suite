@@ -213,6 +213,14 @@ def fits_to_lsst_exposure(
             data, header if "BSOFTEN" in header else merged
         )
 
+        # (1b) Saturation, on the linearised pixels but BEFORE the nJy scaling,
+        # because the header's saturation level is in the frame's native units.
+        sat_mask, sat_level = imaging.saturation_mask(
+            data,
+            header if "SATURATE" in header else merged,
+            getattr(source, "saturation_keywords", []),
+        )
+
         # NOTE: Do NOT mask negative pixels — sky-subtracted images legitimately
         # have negative values.
         bad_mask = ~np.isfinite(data)
@@ -244,8 +252,16 @@ def fits_to_lsst_exposure(
         masked_image = afwImage.MaskedImageF(data.shape[1], data.shape[0])
         masked_image.image.array[:, :] = data.astype(np.float32)
         masked_image.mask.array[bad_mask] = masked_image.mask.getPlaneBitMask("BAD")
+        if sat_mask.any():
+            # SAT (not BAD) so downstream tasks can tell "clipped bright star"
+            # from "no data", and so DIA source flags actually report it.
+            masked_image.mask.array[sat_mask] |= masked_image.mask.getPlaneBitMask(
+                "SAT"
+            )
 
-        good = data[~bad_mask]
+        # Saturated pixels are clipped, not measured, so they must not enter the
+        # noise estimate — they would inflate it toward the ceiling value.
+        good = data[~(bad_mask | sat_mask)]
         if len(good) > 100:
             mad = np.median(np.abs(good - np.median(good)))
             variance = np.maximum((1.4826 * mad) ** 2, np.abs(good))
@@ -287,6 +303,9 @@ def fits_to_lsst_exposure(
         exposure.getInfo().setMetadata(metadata)
         metadata.set("TEMPLATE_SOURCE", source.name)
         metadata.set("TEMPLATE_ASINH_DECODED", bool(asinh_decoded))
+        metadata.set("TEMPLATE_SAT_PIXELS", int(sat_mask.sum()))
+        if sat_level is not None:
+            metadata.set("TEMPLATE_SAT_LEVEL", float(sat_level))
         metadata.set("TEMPLATE_ZEROPOINT", zp)
         metadata.set("TEMPLATE_FWHM_ARCSEC", fwhm_arcsec)
         metadata.set("TEMPLATE_ORIGIN_FILE", str(path))

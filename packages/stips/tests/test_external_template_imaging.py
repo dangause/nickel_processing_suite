@@ -222,3 +222,86 @@ def test_decode_asinh_is_monotonic():
     stored = np.linspace(-3.0, 9.5, 50)
     out, _ = imaging.decode_asinh_scaling(stored, _ps1_header())
     assert np.all(np.diff(out) > 0)
+
+
+# --- saturation masking ------------------------------------------------------
+#
+# SkyMapper serves single-epoch 100 s frames, not deep stacks, and bright stars
+# reach the detector ceiling. The frames declare it: SATURATE = 65435, with real
+# star cores pinned at 64538-64539 (flat-topped over 5+ pixels) and negative
+# bleed artifacts at -97/-98 immediately adjacent. Left unmasked those clipped
+# cores under-represent the star, and the negative pixels push the difference
+# the wrong way, producing spurious positive DIA detections.
+
+#: Real values read off a SkyMapper i-band SIA frame.
+SM_SATURATE = 65435.0
+SM_OBSERVED_CLIP = 64539.0
+
+
+def test_saturation_mask_is_empty_without_a_keyword():
+    data = np.full((4, 4), 1e9)
+    mask, level = imaging.saturation_mask(data, fits.Header(), ["SATURATE"])
+    assert level is None
+    assert not mask.any()
+
+
+def test_saturation_mask_is_empty_when_no_keywords_declared():
+    """A source that does not saturate (e.g. a deep stack) declares none."""
+    hdr = fits.Header({"SATURATE": SM_SATURATE})
+    mask, level = imaging.saturation_mask(np.full((4, 4), 1e9), hdr, [])
+    assert level is None
+    assert not mask.any()
+
+
+def test_saturation_mask_flags_the_observed_skymapper_clip():
+    """The real clip sits at 98.6% of the declared SATURATE, so the default
+    fraction has to be below that or it catches nothing."""
+    hdr = fits.Header({"SATURATE": SM_SATURATE})
+    data = np.array([[1108.0, SM_OBSERVED_CLIP], [3000.0, 500.0]])
+    mask, level = imaging.saturation_mask(data, hdr, ["SATURATE"], grow=0)
+    assert level == pytest.approx(0.9 * SM_SATURATE)
+    assert mask[0, 1]
+    assert not mask[0, 0] and not mask[1, 0] and not mask[1, 1]
+
+
+def test_saturation_mask_grows_to_cover_bleed_artifacts():
+    """The -97 pixel next to a saturated core must end up masked too."""
+    hdr = fits.Header({"SATURATE": SM_SATURATE})
+    data = np.full((7, 7), 1108.0)
+    data[3, 3] = SM_OBSERVED_CLIP
+    data[3, 4] = -97.0  # the adjacent undershoot
+    mask, _ = imaging.saturation_mask(data, hdr, ["SATURATE"], grow=2)
+    assert mask[3, 3] and mask[3, 4]
+    assert not mask[0, 0]
+
+
+def test_saturation_mask_grow_zero_flags_only_the_clipped_pixels():
+    hdr = fits.Header({"SATURATE": SM_SATURATE})
+    data = np.full((5, 5), 1108.0)
+    data[2, 2] = SM_OBSERVED_CLIP
+    mask, _ = imaging.saturation_mask(data, hdr, ["SATURATE"], grow=0)
+    assert mask.sum() == 1
+
+
+def test_saturation_mask_ignores_non_finite_pixels():
+    hdr = fits.Header({"SATURATE": SM_SATURATE})
+    data = np.array([[np.nan, np.inf], [1108.0, SM_OBSERVED_CLIP]])
+    mask, _ = imaging.saturation_mask(data, hdr, ["SATURATE"], grow=0)
+    assert mask[1, 1]
+    assert not mask[0, 0]
+
+
+@pytest.mark.parametrize("bad", [0.0, -1.0, "NaN", "not-a-number"])
+def test_saturation_mask_refuses_an_unusable_level(bad):
+    hdr = fits.Header({"SATURATE": bad})
+    mask, level = imaging.saturation_mask(np.full((4, 4), 1e9), hdr, ["SATURATE"])
+    assert level is None
+    assert not mask.any()
+
+
+def test_saturation_mask_uses_the_first_keyword_present():
+    hdr = fits.Header({"SATLEVEL": 1000.0})
+    data = np.array([[500.0, 950.0]])
+    mask, level = imaging.saturation_mask(data, hdr, ["SATURATE", "SATLEVEL"], grow=0)
+    assert level == pytest.approx(900.0)
+    assert not mask[0, 0] and mask[0, 1]

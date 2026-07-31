@@ -498,6 +498,12 @@ class PS1Source:
     name = "ps1"
     max_cutout_deg = None
     zeropoint_keywords = ["ZPT", "FPA.ZP", "MAGZERO", "MAGZPT"]
+    #: Empty deliberately. PS1 stacks coadd ~27 dithered 40 s exposures, and
+    #: measured on the 2023ixf skycell their bright-star cores are clean,
+    #: un-clipped PSFs while the PS1 ``stack.mask`` flags no pixels in the field
+    #: at all. The header's ``CELL.SATURATION`` describes a single input cell,
+    #: NOT the stack, so masking on it would use a threshold that does not apply.
+    saturation_keywords: list[str] = []
     #: ``download_ps1_cutout`` validates coverage and size after EACH of its
     #: three download methods, because that result is what decides whether to
     #: fall through to the next one. Every return path is therefore already

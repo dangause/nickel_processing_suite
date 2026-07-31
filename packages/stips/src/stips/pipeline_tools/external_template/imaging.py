@@ -118,6 +118,94 @@ def decode_asinh_scaling(data, header, *, logger=log):
     return decoded, True
 
 
+#: Fraction of the declared saturation level at which a pixel counts as
+#: saturated. Detectors clip slightly below the card value -- SkyMapper
+#: declares ``SATURATE = 65435`` but real cores pin at 64539, i.e. 98.6% -- and
+#: the approach to the ceiling is already non-linear, so the threshold sits
+#: below both.
+SATURATION_FRACTION = 0.9
+
+#: Pixels to grow the saturated footprint by. Saturation does not stop at the
+#: clipped pixels: charge bleeds into neighbours and the frames carry negative
+#: undershoot right against the cores (-97 next to a 64539 core on SkyMapper),
+#: which pushes a difference image the WRONG way if left unmasked.
+SATURATION_GROW_PIX = 2
+
+
+def saturation_mask(
+    data,
+    header,
+    keywords,
+    *,
+    fraction=SATURATION_FRACTION,
+    grow=SATURATION_GROW_PIX,
+    logger=log,
+):
+    """Boolean mask of saturated pixels, grown to cover bleed artifacts.
+
+    Survey frames that are single exposures rather than deep stacks reach the
+    detector ceiling on bright stars. A clipped core under-represents the star,
+    so the template is too faint there and the difference keeps a large POSITIVE
+    residual -- indistinguishable, to the detection stage, from a transient.
+
+    ``keywords`` is adapter-supplied and ordered; a source that cannot saturate
+    (a deep coadd, say) passes an empty list and this becomes a no-op.
+
+    Returns:
+        ``(mask, level)`` -- the boolean mask, and the flux level above which a
+        pixel was called saturated (``None`` when no usable card was found, in
+        which case the mask is all-False).
+    """
+    data = np.asarray(data)
+    empty = np.zeros(data.shape, dtype=bool)
+
+    card = next((k for k in keywords if k in header), None)
+    if card is None:
+        return empty, None
+
+    try:
+        saturate = float(header[card])
+    except (TypeError, ValueError):
+        logger.warning(
+            "Saturation card %s=%r is not numeric; not masking saturation",
+            card,
+            header[card],
+        )
+        return empty, None
+
+    if not (np.isfinite(saturate) and saturate > 0):
+        logger.warning(
+            "Saturation card %s=%r is not a usable level; not masking saturation",
+            card,
+            saturate,
+        )
+        return empty, None
+
+    level = fraction * saturate
+    with np.errstate(invalid="ignore"):
+        mask = np.isfinite(data) & (data >= level)
+
+    n_clipped = int(mask.sum())
+    if n_clipped and grow > 0:
+        from scipy.ndimage import binary_dilation
+
+        mask = binary_dilation(mask, iterations=int(grow))
+
+    if n_clipped:
+        logger.info(
+            "Masked saturation: %d pixels at/above %.6g (%s=%.6g x %.2f), "
+            "%d after growing by %d px",
+            n_clipped,
+            level,
+            card,
+            saturate,
+            fraction,
+            int(mask.sum()),
+            grow,
+        )
+    return mask, level
+
+
 def _finite_span(data):
     """Peak-to-peak of the finite pixels, for the decode log line."""
     finite = np.asarray(data)[np.isfinite(data)]

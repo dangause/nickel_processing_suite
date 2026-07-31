@@ -5,6 +5,45 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 ## [Unreleased]
 
 ### Fixed
+- **SkyMapper templates ingested saturated bright stars unmasked.** SkyMapper's
+  SIA serves single-epoch ~100 s frames, not deep stacks, so bright stars reach
+  the detector ceiling — and the frames say so. Measured on the NGC2298 i-band
+  frame: `SATURATE = 65435`, with real cores pinned at 64539 and flat-topped
+  over 5+ pixels, negative bleed undershoot (−97, −98) immediately adjacent, and
+  893 pixels in 35 blobs above 0.9× the level. Nothing read that card:
+  `fits_to_lsst_exposure()` masked only non-finite pixels, so clipped cores were
+  ingested as if they were valid flux, corrupting the template's noise estimate
+  and offering the kernel fit candidates built on clipped data.
+  `imaging.saturation_mask()` now reads an adapter-supplied saturation card,
+  flags pixels at or above 0.9× the declared level, grows the footprint by 2 px
+  to cover the bleed artifacts, sets the LSST `SAT` plane, and excludes those
+  pixels from the variance estimate. Ingested templates record
+  `TEMPLATE_SAT_PIXELS` / `TEMPLATE_SAT_LEVEL`. `SkyMapperSource` declares
+  `SATURATE`; `PS1Source` deliberately declares **none** — PS1 stacks coadd ~27
+  dithered exposures, their bright-star cores measure as clean un-clipped PSFs,
+  and the header's `CELL.SATURATION` describes a single input cell rather than
+  the stack.
+
+  **This does not currently change DIA output, and is not claimed to.** Measured
+  on NGC2298 (18 visits, same science runs and DIA configs, template collection
+  the only variable), against the coadd-template truth run
+  `20260726T150523Z`:
+
+  | | before | after |
+  |---|---|---|
+  | purity vs truth | 32.4% | 32.4% |
+  | recall vs truth | 35.1% | 35.1% |
+  | false positives | 5836 | 5843 |
+
+  The reason is traceable: the `SAT` plane is set on `template_coadd` (4738 px)
+  and survives the rewarp to `template_detector` (7773 px), but
+  `template_matched` carries **0** SAT pixels — the PSF-matching convolution in
+  `AlardLuptonSubtractTask` drops it, so the template's saturation flag never
+  reaches the difference image. Independently, only 1 of 2753 DIA sources sits
+  within 3 px of a SAT pixel, so saturated stars are not what drives the CTIO
+  false-positive population anyway. The fix is kept because it closes a real
+  latent defect in what gets ingested; making it *act* on detection needs the
+  mask-propagation gap above resolved first.
 - **PS1 stack templates were ingested asinh-compressed, never decoded.** PS1
   stores stack pixels asinh-scaled, with the softening in `BSOFTEN`/`BOFFSET`
   (`flux = BOFFSET + BSOFTEN·2·sinh(stored·ln10/2.5)`); nothing in STIPS applied
