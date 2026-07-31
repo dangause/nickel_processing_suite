@@ -5,6 +5,44 @@ All notable changes to STIPS (the Small Telescope Image Processing Suite) are do
 ## [Unreleased]
 
 ### Fixed
+- **PS1 stack templates were ingested asinh-compressed, never decoded.** PS1
+  stores stack pixels asinh-scaled, with the softening in `BSOFTEN`/`BOFFSET`
+  (`flux = BOFFSET + BSOFTEN·2·sinh(stored·ln10/2.5)`); nothing in STIPS applied
+  the inverse. The `fitscut` service returns already-decoded pixels and strips
+  `BSOFTEN`, so the bug only bit when fitscut lost the race to the MAST or
+  `ps1filenames` paths — which is what happened in practice: every cached PS1
+  template on disk was a raw 6302×6283 skycell spanning `[-2.86, 9.47]` with
+  `BSOFTEN` still set. The effect is a ~1e6:1 dynamic range crushed to ~10:1.
+  Because asinh is nearly linear near sky, faint stars still subtracted cleanly
+  (the DIA kernel just absorbs the constant scale) while the deficit grew with
+  brightness — measured encoded/true aperture flux on the 2023ixf skycell ran
+  0.86 at 20–50σ down to 0.02 above 1600σ, which is the brightness-dependent
+  template deficit previously read as template saturation. It is **not**
+  saturation: the PS1 stack mask flags no pixels in that field, the stack's
+  bright-star cores are unclipped, and Nickel science stars peak ~20k ADU
+  against a 65535 rail. Decoding now happens in `fits_to_lsst_exposure()`, the
+  single point where any source's FITS becomes an `Exposure`, so it covers all
+  three PS1 download methods and any future source using the same convention;
+  it runs before the `PhotoCalib` scaling (the zeropoint describes decoded
+  counts) and before the finite check. Ingested templates record
+  `TEMPLATE_ASINH_DECODED`. **Re-ingest existing PS1 templates and rerun the DIA
+  that used them.** Measured on `nickel_smoketest_repo` (same science runs, same
+  default DIA configs, template collection the only variable):
+
+  | metric | 20230521 before → after | 20230519 before → after |
+  |---|---|---|
+  | difference images | 15 → 15 | **2 → 10** |
+  | median star residual, 20–50σ | +11.1% → **+3.7%** | +20.5% → **+1.0%** |
+  | median star residual, 50–100σ | +71.3% → **+5.7%** | +74.4% → **+1.7%** |
+  | median star residual, 100–200σ | +78.7% → **+0.7%** | +87.0% → **+1.9%** |
+  | SN 2023ixf detected | 1/15 → **14/15** visits | 2/2 → **7/10** visits |
+  | SN median SNR | 446 → **700** | 189 → **768** |
+  | dia sources / visit | 410 → 340 | 274 → 263 |
+
+  The SN itself keeps a ~100% residual, which is correct — a transient has no
+  template flux. The 20230519 gain indicates the `NoKernelCandidatesError`
+  starvation on that night was largely this bug: a template whose bright stars
+  are suppressed ~50× offers little for the kernel fit to lock onto.
 - **nickel: frames with `OBSNUM` ≥ 10,000 could not be ingested.** Nickel's
   `OBSNUM` is an observatory-wide running counter, not a per-night sequence; it
   exceeds 10,000 on many nights (already by 2018, though it also resets, so some
